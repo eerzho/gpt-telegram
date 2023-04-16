@@ -44,3 +44,9 @@ Symfony Docker is available under the MIT License.
 ## Credits
 
 Created by [Kévin Dunglas](https://dunglas.fr), co-maintained by [Maxime Helias](https://twitter.com/maxhelias) and sponsored by [Les-Tilleuls.coop](https://les-tilleuls.coop).
+
+## Helps
+1. Run `ALTER SEQUENCE category_id_seq RESTART WITH 1` for reset id
+2. Run `php bin/console doctrine:schema:drop -n -q --force --full-database` for drop all data from database
+3. Run `rm migrations/*.php` for delete all migrations file
+4. Run `ngrok http https://localhost:9001 --host-header=rewrite --scheme=https` for start work via ngrok
