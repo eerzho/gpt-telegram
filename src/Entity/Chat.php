@@ -22,6 +22,9 @@ class Chat
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $chat_gpt_model = null;
 
+    #[ORM\OneToOne(mappedBy: 'chat', cascade: ['persist', 'remove'])]
+    private ?Command $command = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +62,23 @@ class Chat
     public function setChatGptModel(?string $chat_gpt_model): self
     {
         $this->chat_gpt_model = $chat_gpt_model;
+
+        return $this;
+    }
+
+    public function getCommand(): ?Command
+    {
+        return $this->command;
+    }
+
+    public function setCommand(Command $command): self
+    {
+        // set the owning side of the relation if necessary
+        if ($command->getChat() !== $this) {
+            $command->setChat($this);
+        }
+
+        $this->command = $command;
 
         return $this;
     }
