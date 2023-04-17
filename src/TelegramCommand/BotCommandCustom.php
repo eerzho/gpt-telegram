@@ -15,6 +15,19 @@ abstract class BotCommandCustom extends BotCommand implements JsonSerializable
 
     abstract public function process(Message $message): string;
 
+    protected function getCommands(): array
+    {
+        return [
+            Start::class,
+            Help::class,
+            SetToken::class,
+            RemoveToken::class,
+            SetModel::class,
+            RemoveModel::class,
+            Cancel::class,
+        ];
+    }
+
     public function jsonSerialize(): mixed
     {
         return [

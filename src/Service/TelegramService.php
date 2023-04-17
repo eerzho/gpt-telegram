@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Chat;
 use App\TelegramCommand\BotCommandCustom;
 use App\TelegramCommand\Cancel;
 use App\TelegramCommand\Help;
@@ -11,6 +10,7 @@ use App\TelegramCommand\RemoveToken;
 use App\TelegramCommand\SetModel;
 use App\TelegramCommand\SetToken;
 use App\TelegramCommand\Start;
+use App\TelegramCommand\TextHandle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use TelegramBot\Api\BotApi;
 use TelegramBot\Api\Client;
@@ -20,15 +20,13 @@ use TelegramBot\Api\Types\Update;
 class TelegramService
 {
     private BotApi $api;
+
     private Client $client;
 
     private array $commands;
 
     public function __construct(
-        private readonly ChatGptService $chatGptService,
         private readonly ParameterBagInterface $parameterBag,
-        private readonly ChatService $chatService,
-        private readonly CommandService $commandService,
         private readonly CommandContainerService $commandContainerService
     ) {
         $this->api = new BotApi($this->parameterBag->get('app.api.telegram'));
@@ -54,42 +52,13 @@ class TelegramService
         }
 
         $this->client->on(function (Update $update) {
-
-            $chat = $this->chatService->saveId($update->getMessage()->getChat()->getId());
-
-            if ($chat->getCommand()->isActive()) {
-                $this->prepareCommand($chat, $update->getMessage());
-            } else {
-                $this->reply($update->getMessage());
-            }
+            $resultText = (new TextHandle($this->commandContainerService))->process($update->getMessage());
+            $this->sendMessage($update->getMessage(), $resultText);
         }, function () {
             return true;
         });
 
         $this->client->run();
-    }
-
-    private function prepareCommand(Chat $chat, Message $message): void
-    {
-        switch ($chat->getCommand()->getName()) {
-            case 'settoken':
-                $this->chatService->saveToken($chat->getTelegramId(), $message->getText());
-                break;
-            case 'setmodel':
-                $this->chatService->saveModel($chat->getTelegramId(), $message->getText());
-                break;
-        }
-
-        $this->commandService->stopCommand($chat->getCommand());
-        $this->sendMessage($message, $this->chatService->getChatSettingsForTelegram($chat));
-    }
-
-    private function reply(Message $message): void
-    {
-        $chat = $this->chatService->saveId($message->getChat()->getId());
-        $resultMessage = $this->chatGptService->sendMessage($message->getText()."\n", $chat);
-
-        $this->sendMessage($message, $resultMessage);
     }
 
     private function sendMessage(Message $message, $replyText): void

@@ -12,18 +12,8 @@ class Help extends BotCommandCustom
 
     public function process(Message $message): string
     {
-        $commandsClass = [
-            Start::class,
-            Help::class,
-            SetToken::class,
-            RemoveToken::class,
-            SetModel::class,
-            RemoveModel::class,
-            Cancel::class,
-        ];
-
         $resultText = 'Commands:';
-        foreach ($commandsClass as $commandClass) {
+        foreach ($this->getCommands() as $commandClass) {
             /**
              * @var BotCommandCustom $command
              */

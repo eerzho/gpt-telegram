@@ -7,6 +7,7 @@ readonly class CommandContainerService
     public function __construct(
         private ChatService $chatService,
         private CommandService $commandService,
+        private ChatGptService $chatGptService,
     ) {
     }
 
@@ -18,5 +19,10 @@ readonly class CommandContainerService
     public function getCommandService(): CommandService
     {
         return $this->commandService;
+    }
+
+    public function getChatGptService(): ChatGptService
+    {
+        return $this->chatGptService;
     }
 }
