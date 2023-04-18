@@ -13,13 +13,11 @@ class Help extends BotCommandCustom
     public function process(Message $message): string
     {
         $resultText = 'Commands:';
-        foreach ($this->getCommands() as $commandClass) {
-            /**
-             * @var BotCommandCustom $command
-             */
+        array_map(function (string $commandClass) use (&$resultText) {
+            /** @var BotCommandCustom $command */
             $command = new $commandClass();
             $resultText .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
-        }
+        }, $this->getCommands());
 
         return $resultText;
     }

@@ -27,37 +27,23 @@ class TelegramService
 
     private Client $client;
 
-    private array $commands;
-
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
         private readonly CommandContainerService $commandContainerService
     ) {
         $this->api = new BotApi($this->parameterBag->get('app.api.telegram'));
         $this->client = new Client($this->parameterBag->get('app.api.telegram'));
-        $this->commands = [
-            Start::class,
-            Help::class,
-            SetToken::class,
-            RemoveToken::class,
-            SetModel::class,
-            RemoveModel::class,
-            SetTemperature::class,
-            RemoveTemperature::class,
-            SetMaxTokens::class,
-            RemoveMaxTokens::class,
-            Cancel::class,
-        ];
     }
 
     public function answerByWebhook(): void
     {
-        foreach ($this->getCommands() as $commandClass) {
+        array_map(function (string $commandClass) {
+            /** @var BotCommandCustom $command */
             $command = new $commandClass($this->commandContainerService);
             $this->client->command($command->getCommand(), function (Message $message) use ($command) {
                 $this->sendMessage($message, $command->process($message));
             });
-        }
+        }, $this->getCommands());
 
         $this->client->on(function (Update $update) {
             $resultText = (new TextHandle($this->commandContainerService))->process($update->getMessage());
@@ -81,19 +67,27 @@ class TelegramService
 
     public function setCommands(): mixed
     {
-        $commands = [];
-        foreach ($this->getCommands() as $commandClass) {
-            $commands[] = new $commandClass();
-        }
-
-        return $this->api->setMyCommands($commands);
+        return $this->api->setMyCommands(
+            array_map(function (string $commandClass) {
+                return new $commandClass();
+            }, $this->getCommands())
+        );
     }
 
-    /**
-     * @return BotCommandCustom[]
-     */
-    public function getCommands(): array
+    private function getCommands(): array
     {
-        return $this->commands;
+        return [
+            Start::class,
+            Help::class,
+            SetToken::class,
+            RemoveToken::class,
+            SetModel::class,
+            RemoveModel::class,
+            SetTemperature::class,
+            RemoveTemperature::class,
+            SetMaxTokens::class,
+            RemoveMaxTokens::class,
+            Cancel::class,
+        ];;
     }
 }

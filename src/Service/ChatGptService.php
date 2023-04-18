@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Chat;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class ChatGptService
@@ -15,6 +16,9 @@ class ChatGptService
         $this->client = new Client();
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function sendMessage(string $message, Chat $chat): string
     {
         $params = [
@@ -39,6 +43,9 @@ class ChatGptService
         return $resultMessage;
     }
 
+    /**
+     * @throws GuzzleException
+     */
     private function sendRequest(array $params, Chat $chat): array
     {
         $response = $this->client->request('POST', 'https://api.openai.com/v1/completions', [

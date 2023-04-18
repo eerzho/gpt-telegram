@@ -22,22 +22,4 @@ class TelegramController extends AbstractController
 
         return $this->json(['message' => 'Success!']);
     }
-
-    #[Route('/webhook', name: 'app_telegram_webhook', methods: ['GET', 'POST'])]
-    public function webhook(): JsonResponse
-    {
-        $this->telegramService->setWebhook(
-            'https://6901-2a02-8308-500f-1600-71e8-a493-f9de-43a0.ngrok-free.app/telegram/handle'
-        );
-
-        return $this->json(['message' => 'Success!']);
-    }
-
-    #[Route('/commands', name: 'app_telegram_commands', methods: ['GET', 'POST'])]
-    public function commands(): JsonResponse
-    {
-        $res = $this->telegramService->setCommands();
-
-        return $this->json(['message' => 'Success!']);
-    }
 }
