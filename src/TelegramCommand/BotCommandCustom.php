@@ -24,6 +24,10 @@ abstract class BotCommandCustom extends BotCommand implements JsonSerializable
             RemoveToken::class,
             SetModel::class,
             RemoveModel::class,
+            SetTemperature::class,
+            RemoveTemperature::class,
+            SetMaxTokens::class,
+            RemoveMaxTokens::class,
             Cancel::class,
         ];
     }

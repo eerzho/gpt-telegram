@@ -19,11 +19,17 @@ class Chat
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $chat_gpt_api_token = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $chat_gpt_model = null;
+    #[ORM\Column(length: 255, options: ['default' => 'text-davinci-003'])]
+    private ?string $chat_gpt_model = 'text-davinci-003';
 
     #[ORM\OneToOne(mappedBy: 'chat', cascade: ['persist', 'remove'])]
     private ?Command $command = null;
+
+    #[ORM\Column(options: ['default' => 1])]
+    private ?int $temperature = 1;
+
+    #[ORM\Column(options: ['default' => 1000])]
+    private ?int $max_tokens = 1000;
 
     public function getId(): ?int
     {
@@ -54,14 +60,14 @@ class Chat
         return $this;
     }
 
-    public function getChatGptModel(): ?string
+    public function getChatGptModel(): string
     {
         return $this->chat_gpt_model;
     }
 
     public function setChatGptModel(?string $chat_gpt_model): self
     {
-        $this->chat_gpt_model = $chat_gpt_model;
+        $this->chat_gpt_model = $chat_gpt_model ?? 'text-davinci-003';
 
         return $this;
     }
@@ -79,6 +85,30 @@ class Chat
         }
 
         $this->command = $command;
+
+        return $this;
+    }
+
+    public function getTemperature(): int
+    {
+        return $this->temperature;
+    }
+
+    public function setTemperature(?int $temperature): self
+    {
+        $this->temperature = $temperature ?? 1;
+
+        return $this;
+    }
+
+    public function getMaxTokens(): int
+    {
+        return $this->max_tokens;
+    }
+
+    public function setMaxTokens(?int $max_tokens): self
+    {
+        $this->max_tokens = $max_tokens ?? 1000;
 
         return $this;
     }

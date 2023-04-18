@@ -5,9 +5,13 @@ namespace App\Service;
 use App\TelegramCommand\BotCommandCustom;
 use App\TelegramCommand\Cancel;
 use App\TelegramCommand\Help;
+use App\TelegramCommand\RemoveMaxTokens;
 use App\TelegramCommand\RemoveModel;
+use App\TelegramCommand\RemoveTemperature;
 use App\TelegramCommand\RemoveToken;
+use App\TelegramCommand\SetMaxTokens;
 use App\TelegramCommand\SetModel;
+use App\TelegramCommand\SetTemperature;
 use App\TelegramCommand\SetToken;
 use App\TelegramCommand\Start;
 use App\TelegramCommand\TextHandle;
@@ -38,6 +42,10 @@ class TelegramService
             RemoveToken::class,
             SetModel::class,
             RemoveModel::class,
+            SetTemperature::class,
+            RemoveTemperature::class,
+            SetMaxTokens::class,
+            RemoveMaxTokens::class,
             Cancel::class,
         ];
     }

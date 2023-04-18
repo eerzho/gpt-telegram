@@ -5,14 +5,11 @@ namespace App\Service;
 use App\Entity\Chat;
 use App\Entity\Command;
 use App\Repository\ChatRepository;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 readonly class ChatService
 {
-    public function __construct(
-        private ChatRepository $chatRepository,
-        private ParameterBagInterface $parameterBag
-    ) {
+    public function __construct(private ChatRepository $chatRepository)
+    {
     }
 
     public function saveId(int $telegramId): Chat
@@ -41,6 +38,24 @@ readonly class ChatService
         return $chat;
     }
 
+    public function saveTemperature(int $telegramId, ?int $temperature): Chat
+    {
+        $chat = $this->getChat($telegramId);
+        $chat->setTemperature($temperature);
+        $this->chatRepository->save($chat, true);
+
+        return $chat;
+    }
+
+    public function saveMaxTokens(int $telegramId, ?int $maxTokens): Chat
+    {
+        $chat = $this->getChat($telegramId);
+        $chat->setMaxTokens($maxTokens);
+        $this->chatRepository->save($chat, true);
+
+        return $chat;
+    }
+
     private function getChat(int $telegramId): Chat
     {
         return $this->chatRepository->findByTelegramId($telegramId) ??
@@ -52,10 +67,12 @@ readonly class ChatService
     public function getChatSettingsForTelegram(Chat $chat): string
     {
         return sprintf(
-            "Your settings:\n\tchat id - %d\n\ttoken - %s\n\tmodel - %s",
+            "Your settings:\n\tchat id - %d\n\ttoken - %s\n\tmodel - %s\n\ttemperature - %d\n\tmax_tokens - %d",
             $chat->getTelegramId(),
-            $chat->getChatGptApiToken() ?? 'API_TOKEN (default)',
-            $chat->getChatGptModel() ?? sprintf('%s (default)', $this->parameterBag->get('app.api.chat_gpt.model')),
+            $chat->getChatGptApiToken() ?? 'DEFAULT',
+            $chat->getChatGptModel(),
+            $chat->getTemperature(),
+            $chat->getMaxTokens()
         );
     }
 }

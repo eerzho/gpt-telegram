@@ -19,8 +19,8 @@ class ChatGptService
     {
         $params = [
             'prompt' => $message,
-            'temperature' => 1,
-            'max_tokens' => 1000,
+            'temperature' => $chat->getTemperature(),
+            'max_tokens' => $chat->getMaxTokens(),
             'stop' => ['\n'],
         ];
 
@@ -50,7 +50,7 @@ class ChatGptService
                 ),
             ],
             'json' => [
-                'model' => $chat->getChatGptModel() ?? $this->parameterBag->get('app.api.chat_gpt.model'),
+                'model' => $chat->getChatGptModel(),
                 'prompt' => $params['prompt'],
                 'temperature' => $params['temperature'],
                 'max_tokens' => $params['max_tokens'],

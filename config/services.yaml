@@ -6,7 +6,6 @@
 parameters:
   app.api.telegram: '%env(TELEGRAM_API)%'
   app.api.chat_gpt: '%env(CHAT_GPT_API)%'
-  app.api.chat_gpt.model: '%env(CHAT_GPT_MODEL)%'
 
 services:
   # default configuration for services in *this* file
