@@ -14,7 +14,7 @@ class Command
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $name = null;
+    private ?string $class = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $active = false;
@@ -28,14 +28,14 @@ class Command
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getClass(): ?string
     {
-        return $this->name;
+        return $this->class;
     }
 
-    public function setName(?string $name): self
+    public function setClass(?string $class): self
     {
-        $this->name = $name;
+        $this->class = $class;
 
         return $this;
     }

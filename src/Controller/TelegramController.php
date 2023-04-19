@@ -10,9 +10,8 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/telegram')]
 class TelegramController extends AbstractController
 {
-    public function __construct(
-        private readonly TelegramService $telegramService
-    ) {
+    public function __construct(private readonly TelegramService $telegramService)
+    {
     }
 
     #[Route('/handle', name: 'app_telegram_handle', methods: ['GET', 'POST'])]

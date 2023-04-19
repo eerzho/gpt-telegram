@@ -2,6 +2,8 @@
 
 namespace App\TelegramCommand;
 
+use App\Constant\TelegramCommandRegistry;
+use App\Entity\Chat;
 use App\Service\CommandContainerService;
 use JsonSerializable;
 use TelegramBot\Api\Types\BotCommand;
@@ -15,21 +17,14 @@ abstract class BotCommandCustom extends BotCommand implements JsonSerializable
 
     abstract public function process(Message $message): string;
 
+    public function postProcess(Chat $chat, Message $message): string
+    {
+        return '';
+    }
+
     protected function getCommands(): array
     {
-        return [
-            Start::class,
-            Help::class,
-            SetToken::class,
-            RemoveToken::class,
-            SetModel::class,
-            RemoveModel::class,
-            SetTemperature::class,
-            RemoveTemperature::class,
-            SetMaxTokens::class,
-            RemoveMaxTokens::class,
-            Cancel::class,
-        ];
+        return TelegramCommandRegistry::getActiveCommands();
     }
 
     public function jsonSerialize(): mixed

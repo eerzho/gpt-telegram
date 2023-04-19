@@ -11,16 +11,16 @@ readonly class CommandService
     {
     }
 
-    public function startCommand(Command $command, string $commandName): void
+    public function startCommand(Command $command, string $commandClass): void
     {
-        $command->setName($commandName)->setActive(true);
+        $command->setClass($commandClass)->setActive(true);
 
         $this->commandRepository->save($command, true);
     }
 
     public function stopCommand(Command $command): void
     {
-        $command->setName(null)->setActive(false);
+        $command->setClass(null)->setActive(false);
 
         $this->commandRepository->save($command, true);
     }

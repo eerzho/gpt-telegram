@@ -40,35 +40,11 @@ class TextHandle extends BotCommandCustom
 
     private function getCommandResult(Chat $chat, Message $message): string
     {
-        switch ($chat->getCommand()->getName()) {
-            case 'settoken':
-                $this->commandContainerService->getChatService()->saveToken(
-                    $chat->getTelegramId(),
-                    $message->getText()
-                );
-                break;
-            case 'setmodel':
-                $this->commandContainerService->getChatService()->saveModel(
-                    $chat->getTelegramId(),
-                    $message->getText()
-                );
-                break;
-            case 'settemperature':
-                $this->commandContainerService->getChatService()->saveTemperature(
-                    $chat->getTelegramId(),
-                    $message->getText()
-                );
-                break;
-            case 'setmaxtokens':
-                $this->commandContainerService->getChatService()->saveMaxTokens(
-                    $chat->getTelegramId(),
-                    $message->getText()
-                );
-                break;
-        }
+        $className = $chat->getCommand()->getClass();
 
-        $this->commandContainerService->getCommandService()->stopCommand($chat->getCommand());
+        /** @var BotCommandCustom $telegramCommand */
+        $telegramCommand = new $className($this->commandContainerService);
 
-        return $this->commandContainerService->getChatService()->getChatSettingsForTelegram($chat);
+        return $telegramCommand->postProcess($chat, $message);
     }
 }
