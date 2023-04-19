@@ -24,22 +24,14 @@ class TelegramSetWebhookCommand extends Command
 
     protected function configure(): void
     {
-        $this->addArgument('url', InputArgument::OPTIONAL, 'Url to be used for webhook');
+        $this->addArgument('url', InputArgument::REQUIRED, 'Url to be used for webhook');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $url = $input->getArgument('url');
-
-        if (!$url) {
-            $io->error("You didn't send url");
-
-            return Command::FAILURE;
-        }
-
-        $url = sprintf('%stelegram/handle', preg_replace('#([^/])$#', '$1/', $url));
+        $url = sprintf('%stelegram/handle', preg_replace('#([^/])$#', '$1/', $input->getArgument('url')));
         $this->telegramService->setWebhook($url);
 
         $io->success('Webhook set success!');
