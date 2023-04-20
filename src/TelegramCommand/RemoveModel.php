@@ -11,10 +11,10 @@ class RemoveModel extends BotCommandCustom
 
     protected $description = 'Set default model';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
-        $this->commandContainerService->getChatTService()->save($chatT->setChatGptModel(null));
+        $resultText = $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
 
-        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
+        return $this->commandContainerService->getChatTService()->save($chatT->setChatGptModel(null));
     }
 }

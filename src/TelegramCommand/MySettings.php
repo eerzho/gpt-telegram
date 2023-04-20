@@ -11,8 +11,10 @@ class MySettings extends BotCommandCustom
 
     protected $description = 'List of your settings';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
-        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
+        $resultText = $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
+
+        return true;
     }
 }

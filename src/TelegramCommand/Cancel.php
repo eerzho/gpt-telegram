@@ -11,16 +11,16 @@ class Cancel extends BotCommandCustom
 
     protected $description = 'Cancel active command or to end a chat with Gpt';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
         if ($chatT->getCommandT()->isActive()) {
-            $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
+            $isSave = $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
             $resultText = 'Command canceled';
         } else {
-            $this->commandContainerService->getMessageTService()->removeAllByChat($chatT);
+            $isSave = $this->commandContainerService->getMessageTService()->removeAllByChat($chatT);
             $resultText = 'Chat cleared';
         }
 
-        return $resultText;
+        return $isSave;
     }
 }

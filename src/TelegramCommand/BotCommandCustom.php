@@ -15,11 +15,11 @@ abstract class BotCommandCustom extends BotCommand implements JsonSerializable
     {
     }
 
-    abstract public function process(ChatT $chatT, Message $message): string;
+    abstract public function process(ChatT $chatT, Message $message, string &$resultText = ''): bool;
 
-    public function postProcess(ChatT $chatT, Message $message): string
+    public function postProcess(ChatT $chatT, Message $message, string &$resultText = ''): bool
     {
-        return '';
+        return true;
     }
 
     protected function getCommands(): array

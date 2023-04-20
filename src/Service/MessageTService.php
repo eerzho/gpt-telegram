@@ -12,12 +12,12 @@ readonly class MessageTService
     {
     }
 
-    public function save(MessageT $messageT, bool $flush = true): bool
+    public function save(MessageT $messageT): bool
     {
-        return $this->messageTRepository->save($messageT, $flush);
+        return $this->messageTRepository->save($messageT);
     }
 
-    public function removeAllByChat(ChatT $chatT)
+    public function removeAllByChat(ChatT $chatT): bool
     {
         return $this->messageTRepository->removeAllByChatId($chatT->getId());
     }

@@ -11,7 +11,7 @@ class Help extends BotCommandCustom
 
     protected $description = 'Show all list of commands';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
         $resultText = 'Commands:';
         array_map(function (string $commandClass) use (&$resultText) {
@@ -20,6 +20,6 @@ class Help extends BotCommandCustom
             $resultText .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
         }, $this->getCommands());
 
-        return $resultText;
+        return true;
     }
 }

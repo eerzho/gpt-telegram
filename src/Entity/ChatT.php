@@ -28,11 +28,12 @@ class ChatT
     private Collection $message_ts;
 
     #[ORM\OneToOne(mappedBy: 'chat_t', cascade: ['persist', 'remove'])]
-    private ?CommandT $command_t = null;
+    private CommandT $command_t;
 
     public function __construct()
     {
         $this->message_ts = new ArrayCollection();
+        $this->command_t = new CommandT();
     }
 
     public function getId(): ?int
@@ -106,7 +107,7 @@ class ChatT
         return $this;
     }
 
-    public function getCommandT(): ?CommandT
+    public function getCommandT(): CommandT
     {
         return $this->command_t;
     }

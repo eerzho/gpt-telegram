@@ -15,13 +15,13 @@ readonly class CommandService
     {
         $command->setClass($commandClass)->setActive(true);
 
-        return $this->commandRepository->save($command, true);
+        return $this->commandRepository->save($command);
     }
 
     public function stopCommand(CommandT $command): bool
     {
         $command->setClass(null)->setActive(false);
 
-        return $this->commandRepository->save($command, true);
+        return $this->commandRepository->save($command);
     }
 }

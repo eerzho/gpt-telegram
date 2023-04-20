@@ -43,11 +43,11 @@ class MessageTRepository extends ServiceEntityRepository
         return !$this->getEntityManager()->contains($entity);
     }
 
-    public function removeAllByChatId(int $chatId): mixed
+    public function removeAllByChatId(int $chatId): bool
     {
-        return $this->getEntityManager()
-            ->createQuery('DELETE FROM App\Entity\MessageT m WHERE m.chat_t = :chatId')
-            ->setParameter('chatId', $chatId)
-            ->execute();
+        return !($this->getEntityManager()
+                ->createQuery('DELETE FROM App\Entity\MessageT m WHERE m.chat_t = :chatId')
+                ->setParameter('chatId', $chatId)
+                ->execute() === null);
     }
 }

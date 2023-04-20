@@ -11,18 +11,23 @@ class SetToken extends BotCommandCustom
 
     protected $description = 'Set your token';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
-        $this->commandContainerService->getCommandTService()->startCommand($chatT->getCommandT(), self::class);
+        $resultText = 'Send your token or use the /cancel command to cancel';
 
-        return 'Send your token or use the /cancel command to cancel';
+        return $this->commandContainerService->getCommandTService()->startCommand($chatT->getCommandT(), self::class);
     }
 
-    public function postProcess(ChatT $chatT, Message $message): string
+    public function postProcess(ChatT $chatT, Message $message, string &$resultText = ''): bool
     {
-        $this->commandContainerService->getChatTService()->save($chatT->setChatGptApiToken($message->getText()));
-        $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
+        $isSave = $this->commandContainerService->getChatTService()
+            ->save($chatT->setChatGptApiToken($message->getText()));
 
-        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
+        $isSave = $isSave && $this->commandContainerService->getCommandTService()
+                ->stopCommand($chatT->getCommandT());
+
+        $resultText = $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
+
+        return $isSave;
     }
 }

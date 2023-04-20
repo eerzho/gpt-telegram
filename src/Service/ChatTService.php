@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\ChatT;
-use App\Entity\CommandT;
 use App\Repository\ChatTRepository;
 
 readonly class ChatTService
@@ -12,9 +11,9 @@ readonly class ChatTService
     {
     }
 
-    public function save(ChatT $chatT, bool $flush = true): bool
+    public function save(ChatT $chatT): bool
     {
-        return $this->chatTRepository->save($chatT, $flush);
+        return $this->chatTRepository->save($chatT);
     }
 
     public function getChatByTelegramId(int $telegramId): ChatT
@@ -22,7 +21,7 @@ readonly class ChatTService
         $chat = $this->chatTRepository->findByTelegramId($telegramId);
 
         if (!$chat) {
-            $chat = (new ChatT())->setTelegramId($telegramId)->setCommandT(new CommandT());
+            $chat = (new ChatT())->setTelegramId($telegramId);
             $this->save($chat);
         }
 

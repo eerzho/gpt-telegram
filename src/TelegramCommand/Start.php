@@ -11,8 +11,10 @@ class Start extends BotCommandCustom
 
     protected $description = 'Hello world!';
 
-    public function process(ChatT $chatT, Message $message): string
+    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
-        return 'Hello everyone, this bot is designed for convenient and fast communication with ChatGpt. Here, you can customize the settings of the ChatGpt API as per your convenience.';
+        $resultText = 'Hello everyone, this bot is designed for convenient and fast communication with ChatGpt. Here, you can customize the settings of the ChatGpt API as per your convenience.';
+
+        return true;
     }
 }
