@@ -13,8 +13,9 @@ class RemoveToken extends BotCommandCustom
 
     public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
     {
+        $isSave = $this->commandContainerService->getChatTService()->save($chatT->setChatGptApiToken(null));
         $resultText = $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
 
-        return $this->commandContainerService->getChatTService()->save($chatT->setChatGptApiToken(null));
+        return $isSave;
     }
 }
