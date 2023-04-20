@@ -2,6 +2,7 @@
 
 namespace App\TelegramCommand;
 
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class RemoveToken extends BotCommandCustom
@@ -10,10 +11,10 @@ class RemoveToken extends BotCommandCustom
 
     protected $description = 'Set default token';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
-        $chat = $this->commandContainerService->getChatService()->saveToken($message->getChat()->getId(), null);
+        $this->commandContainerService->getChatTService()->save($chatT->setChatGptApiToken(null));
 
-        return $this->commandContainerService->getChatService()->getChatSettingsForTelegram($chat);
+        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
     }
 }

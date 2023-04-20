@@ -2,6 +2,7 @@
 
 namespace App\TelegramCommand;
 
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class Help extends BotCommandCustom
@@ -10,7 +11,7 @@ class Help extends BotCommandCustom
 
     protected $description = 'Show all list of commands';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
         $resultText = 'Commands:';
         array_map(function (string $commandClass) use (&$resultText) {

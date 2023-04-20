@@ -2,7 +2,8 @@
 
 namespace App\Service;
 
-use App\Entity\Chat;
+use App\Entity\ChatT;
+use App\Entity\MessageT;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -17,38 +18,33 @@ class ChatGptService
     }
 
     /**
+     * @param MessageT[] $messageTs
+     * @param ChatT $chat
+     * @return string
      * @throws GuzzleException
      */
-    public function sendMessage(string $message, Chat $chat): string
+    public function sendMessages(array $messageTs, ChatT $chat): string
     {
-        $params = [
-            'prompt' => $message,
-            'temperature' => $chat->getTemperature(),
-            'max_tokens' => $chat->getMaxTokens(),
-            'stop' => ['\n'],
-        ];
+        $params['messages'] = array_map(function (MessageT $messageT) {
+            return [
+                'role' => $messageT->getRole(),
+                'content' => $messageT->getContent(),
+            ];
+        }, $messageTs);
 
-        $resultMessage = '';
-        while (true) {
-            $result = $this->sendRequest($params, $chat);
-            $resultMessage .= $result['choices'][0]['text'];
+        array_unshift($params['messages'], $this->getSysTemMessage());
 
-            if ($result['choices'][0]['finish_reason'] === 'length') {
-                $params['prompt'] .= $result['choices'][0]['text'];
-            } else {
-                break;
-            }
-        }
+        $response = $this->sendRequest($params, $chat);
 
-        return $resultMessage;
+        return $response['choices'][0]['message']['content'];
     }
 
     /**
      * @throws GuzzleException
      */
-    private function sendRequest(array $params, Chat $chat): array
+    private function sendRequest(array $params, ChatT $chat): array
     {
-        $response = $this->client->request('POST', 'https://api.openai.com/v1/completions', [
+        $response = $this->client->request('POST', 'https://api.openai.com/v1/chat/completions', [
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Authorization' => sprintf(
@@ -57,14 +53,19 @@ class ChatGptService
                 ),
             ],
             'json' => [
-                'model' => $chat->getChatGptModel(),
-                'prompt' => $params['prompt'],
-                'temperature' => $params['temperature'],
-                'max_tokens' => $params['max_tokens'],
-                'stop' => $params['stop'],
+                'model' => $chat->getChatGptModel() ?? 'gpt-3.5-turbo',
+                'messages' => $params['messages'],
             ],
         ]);
 
         return json_decode($response->getBody()->getContents(), true);
+    }
+
+    private function getSysTemMessage(): array
+    {
+        return [
+            'role' => 'system',
+            'content' => $this->parameterBag->get('app.api.chat_gpt.system_message'),
+        ];
     }
 }

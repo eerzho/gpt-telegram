@@ -2,26 +2,26 @@
 
 namespace App\Service;
 
-use App\Entity\Command;
-use App\Repository\CommandRepository;
+use App\Entity\CommandT;
+use App\Repository\CommandTRepository;
 
 readonly class CommandService
 {
-    public function __construct(private CommandRepository $commandRepository)
+    public function __construct(private CommandTRepository $commandRepository)
     {
     }
 
-    public function startCommand(Command $command, string $commandClass): void
+    public function startCommand(CommandT $command, string $commandClass): bool
     {
         $command->setClass($commandClass)->setActive(true);
 
-        $this->commandRepository->save($command, true);
+        return $this->commandRepository->save($command, true);
     }
 
-    public function stopCommand(Command $command): void
+    public function stopCommand(CommandT $command): bool
     {
         $command->setClass(null)->setActive(false);
 
-        $this->commandRepository->save($command, true);
+        return $this->commandRepository->save($command, true);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\TelegramCommand;
 
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class MySettings extends BotCommandCustom
@@ -10,10 +11,8 @@ class MySettings extends BotCommandCustom
 
     protected $description = 'List of your settings';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
-        $chat = $this->commandContainerService->getChatService()->saveId($message->getChat()->getId());
-
-        return $this->commandContainerService->getChatService()->getChatSettingsForTelegram($chat);
+        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
     }
 }

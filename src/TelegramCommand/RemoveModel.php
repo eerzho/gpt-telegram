@@ -2,6 +2,7 @@
 
 namespace App\TelegramCommand;
 
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class RemoveModel extends BotCommandCustom
@@ -10,10 +11,10 @@ class RemoveModel extends BotCommandCustom
 
     protected $description = 'Set default model';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
-        $chat = $this->commandContainerService->getChatService()->saveModel($message->getChat()->getId(), null);
+        $this->commandContainerService->getChatTService()->save($chatT->setChatGptModel(null));
 
-        return $this->commandContainerService->getChatService()->getChatSettingsForTelegram($chat);
+        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
     }
 }

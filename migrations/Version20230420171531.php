@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20230418233407 extends AbstractMigration
+final class Version20230420171531 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -20,13 +20,13 @@ final class Version20230418233407 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE command RENAME COLUMN name TO class');
+        $this->addSql('ALTER TABLE message_t ALTER content TYPE TEXT');
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('CREATE SCHEMA public');
-        $this->addSql('ALTER TABLE command RENAME COLUMN class TO name');
+        $this->addSql('ALTER TABLE message_t ALTER content TYPE VARCHAR(255)');
     }
 }

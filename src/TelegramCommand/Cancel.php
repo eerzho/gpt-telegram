@@ -2,19 +2,25 @@
 
 namespace App\TelegramCommand;
 
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class Cancel extends BotCommandCustom
 {
     protected $command = 'cancel';
 
-    protected $description = 'Cancel active command';
+    protected $description = 'Cancel active command or to end a chat with Gpt';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
-        $chat = $this->commandContainerService->getChatService()->saveId($message->getChat()->getId());
-        $this->commandContainerService->getCommandService()->stopCommand($chat->getCommand());
+        if ($chatT->getCommandT()->isActive()) {
+            $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
+            $resultText = 'Command canceled';
+        } else {
+            $this->commandContainerService->getMessageTService()->removeAllByChat($chatT);
+            $resultText = 'Chat cleared';
+        }
 
-        return 'Command canceled';
+        return $resultText;
     }
 }

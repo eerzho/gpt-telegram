@@ -2,7 +2,7 @@
 
 namespace App\TelegramCommand;
 
-use App\Entity\Chat;
+use App\Entity\ChatT;
 use TelegramBot\Api\Types\Message;
 
 class SetToken extends BotCommandCustom
@@ -11,19 +11,18 @@ class SetToken extends BotCommandCustom
 
     protected $description = 'Set your token';
 
-    public function process(Message $message): string
+    public function process(ChatT $chatT, Message $message): string
     {
-        $chat = $this->commandContainerService->getChatService()->saveId($message->getChat()->getId());
-        $this->commandContainerService->getCommandService()->startCommand($chat->getCommand(), self::class);
+        $this->commandContainerService->getCommandTService()->startCommand($chatT->getCommandT(), self::class);
 
         return 'Send your token or use the /cancel command to cancel';
     }
 
-    public function postProcess(Chat $chat, Message $message): string
+    public function postProcess(ChatT $chatT, Message $message): string
     {
-        $this->commandContainerService->getChatService()->saveToken($chat->getTelegramId(), $message->getText());
-        $this->commandContainerService->getCommandService()->stopCommand($chat->getCommand());
+        $this->commandContainerService->getChatTService()->save($chatT->setChatGptApiToken($message->getText()));
+        $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
 
-        return $this->commandContainerService->getChatService()->getChatSettingsForTelegram($chat);
+        return $this->commandContainerService->getChatTService()->getChatSettingsForTelegram($chatT);
     }
 }
