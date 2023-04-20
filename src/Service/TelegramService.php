@@ -46,7 +46,7 @@ class TelegramService
         }, TelegramCommandRegistry::getListenCommands());
 
         $this->client->on(function (Update $update) {
-            $this->listen($update);
+            $this->updateProcess($update);
         }, function () {
             return true;
         });
@@ -54,7 +54,7 @@ class TelegramService
         $this->client->run();
     }
 
-    private function listen(Update $update): void
+    private function updateProcess(Update $update): void
     {
         $chatT = $this->chatTService->getChatByTelegramId($update->getMessage()->getChat()->getId());
 
@@ -72,7 +72,7 @@ class TelegramService
         $this->api->deleteWebhook();
 
         foreach ($this->api->getUpdates() as $update) {
-            $this->listen($update);
+            $this->updateProcess($update);
         }
     }
 
