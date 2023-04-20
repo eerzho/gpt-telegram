@@ -12,15 +12,15 @@ use GuzzleHttp\Exception\GuzzleException;
 use TelegramBot\Api\Types\Message;
 use TelegramBot\Api\Types\Update;
 
-class TelegramService
+readonly class TelegramService
 {
     public function __construct(
-        private readonly TelegramApiClient $client,
-        private readonly CommandContainerService $commandContainerService,
-        private readonly ChatTService $chatTService,
-        private readonly MessageTService $messageTService,
-        private readonly ChatGptService $chatGptService,
-        private readonly EntityManagerInterface $manager,
+        private TelegramApiClient $client,
+        private CommandContainerService $commandContainerService,
+        private ChatTService $chatTService,
+        private MessageTService $messageTService,
+        private ChatGptService $chatGptService,
+        private EntityManagerInterface $manager,
     ) {
     }
 

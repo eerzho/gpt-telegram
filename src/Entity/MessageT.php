@@ -51,12 +51,12 @@ class MessageT
         return $this;
     }
 
-    public function getChatT(): ?ChatT
+    public function getChatT(): ChatT
     {
         return $this->chat_t;
     }
 
-    public function setChatT(?ChatT $chat_t): self
+    public function setChatT(ChatT $chat_t): self
     {
         $this->chat_t = $chat_t;
 
