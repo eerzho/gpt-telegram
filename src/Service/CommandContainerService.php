@@ -7,7 +7,8 @@ readonly class CommandContainerService
     public function __construct(
         private ChatTService $chatTService,
         private CommandService $commandTService,
-        private MessageTService $messageTService
+        private MessageTService $messageTService,
+        private EncryptionService $encryptionService,
     ) {
     }
 
@@ -26,5 +27,8 @@ readonly class CommandContainerService
         return $this->messageTService;
     }
 
-
+    public function getEncryptionService(): EncryptionService
+    {
+        return $this->encryptionService;
+    }
 }

@@ -8,7 +8,7 @@ use App\Repository\ChatTRepository;
 
 readonly class ChatTService
 {
-    public function __construct(private ChatTRepository $chatTRepository)
+    public function __construct(private ChatTRepository $chatTRepository, private EncryptionService $encryptionService)
     {
     }
 
@@ -36,7 +36,7 @@ readonly class ChatTService
         return sprintf(
             "Your settings:\n\tchat id - %d\n\ttoken - %s\n\tmodel - %s",
             $chatT->getTelegramId(),
-            $chatT->getChatGptApiToken() ?? 'DEFAULT',
+            $chatT->getChatGptApiToken() ? $this->encryptionService->decrypt($chatT->getChatGptApiToken()) : 'DEFAULT',
             $chatT->getChatGptModel()
         );
     }

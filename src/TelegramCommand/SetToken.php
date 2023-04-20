@@ -21,7 +21,11 @@ class SetToken extends BotCommandCustom
     public function postProcess(ChatT $chatT, Message $message, string &$resultText = ''): bool
     {
         $isSave = $this->commandContainerService->getChatTService()
-            ->save($chatT->setChatGptApiToken($message->getText()));
+            ->save(
+                $chatT->setChatGptApiToken(
+                    $this->commandContainerService->getEncryptionService()->encrypt($message->getText())
+                )
+            );
 
         $isSave = $isSave && $this->commandContainerService->getCommandTService()
                 ->stopCommand($chatT->getCommandT());

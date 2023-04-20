@@ -21,6 +21,7 @@ readonly class TelegramService
         private MessageTService $messageTService,
         private ChatGptService $chatGptService,
         private EntityManagerInterface $manager,
+        private EncryptionService $encryptionService
     ) {
     }
 
@@ -149,14 +150,14 @@ readonly class TelegramService
 
             $userMessage = (new MessageT())
                 ->setRole('user')
-                ->setContent($message->getText())
+                ->setContent($this->encryptionService->encrypt($message->getText()))
                 ->setChatT($chatT);
 
             $messageTs[] = $userMessage;
 
             $botMessage = (new MessageT())
                 ->setRole('assistant')
-                ->setContent($this->chatGptService->sendMessages($messageTs, $chatT))
+                ->setContent($this->encryptionService->encrypt($this->chatGptService->sendMessages($messageTs, $chatT)))
                 ->setChatT($chatT);
 
             if ($this->messageTService->save($userMessage) &&
@@ -165,7 +166,7 @@ readonly class TelegramService
                 $this->manager->flush();
                 $this->manager->getConnection()->commit();
 
-                $resultText = $botMessage->getContent();
+                $resultText = $this->encryptionService->decrypt($botMessage->getContent());
             }
 
         } catch (GuzzleException $exception) {

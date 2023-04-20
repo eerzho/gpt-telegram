@@ -12,8 +12,10 @@ class ChatGptService
 {
     private Client $client;
 
-    public function __construct(private readonly ParameterBagInterface $parameterBag)
-    {
+    public function __construct(
+        private readonly ParameterBagInterface $parameterBag,
+        private readonly EncryptionService $encryptionService
+    ) {
         $this->client = new Client();
     }
 
@@ -28,7 +30,7 @@ class ChatGptService
         $params['messages'] = array_map(function (MessageT $messageT) {
             return [
                 'role' => $messageT->getRole(),
-                'content' => $messageT->getContent(),
+                'content' => $this->encryptionService->decrypt($messageT->getContent()),
             ];
         }, $messageTs);
 
@@ -49,11 +51,13 @@ class ChatGptService
                 'Content-Type' => 'application/json',
                 'Authorization' => sprintf(
                     'Bearer %s',
-                    $chat->getChatGptApiToken() ?? $this->parameterBag->get('app.api.chat_gpt')
+                    $chat->getChatGptApiToken() ?
+                        $this->encryptionService->decrypt($chat->getChatGptApiToken()) :
+                        $this->parameterBag->get('app.api.chat_gpt')
                 ),
             ],
             'json' => [
-                'model' => $chat->getChatGptModel() ?? 'gpt-3.5-turbo',
+                'model' => $chat->getChatGptModel(),
                 'messages' => $params['messages'],
             ],
         ]);

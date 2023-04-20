@@ -8,6 +8,7 @@ parameters:
   app.api.telegram.bot_id: '%env(TELEGRAM_API_BOT_ID)%'
   app.api.chat_gpt: '%env(CHAT_GPT_API)%'
   app.api.chat_gpt.system_message: '%env(CHAT_GPT_API_SYSTEM_MESSAGE)%'
+  app.encryption.key_path: '%env(ENCRYPTION_KEY_PATH)%'
 
 services:
   # default configuration for services in *this* file
