@@ -85,12 +85,22 @@ readonly class TelegramService
         $this->client->getBot()->setWebhook($url);
     }
 
-    public function setCommands(): mixed
+    public function setCommands(): void
     {
-        return $this->client->getBot()->setMyCommands(
+        $this->client->getBot()->setMyCommands(
             array_map(function (string $commandClass) {
                 return new $commandClass();
             }, TelegramCommandRegistry::getShowCommands())
+        );
+    }
+
+    private function sendMessage(Message $message, $replyText): void
+    {
+        $this->client->getBot()->sendMessage(
+            $message->getChat()->getId(),
+            $replyText,
+            parseMode: 'Markdown',
+            replyToMessageId: $message->getMessageId()
         );
     }
 
@@ -170,15 +180,5 @@ readonly class TelegramService
         }
 
         return $resultText;
-    }
-
-    private function sendMessage(Message $message, $replyText): void
-    {
-        $this->client->getBot()->sendMessage(
-            $message->getChat()->getId(),
-            $replyText,
-            parseMode: 'Markdown',
-            replyToMessageId: $message->getMessageId()
-        );
     }
 }
