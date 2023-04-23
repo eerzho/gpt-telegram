@@ -56,7 +56,7 @@ readonly class TelegramService
 
         $this->client->on(function (Update $update) {
             $message = $update->getMessage() ?? $update->getEditedMessage();
-            if ($message) {
+            if ($message && $message->getText()) {
                 $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
                 $this->sendMessage($update->getMessage(), $this->updateProcess($chatT, $message));
             }
