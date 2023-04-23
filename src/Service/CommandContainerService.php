@@ -9,6 +9,7 @@ readonly class CommandContainerService
         private CommandService $commandTService,
         private MessageTService $messageTService,
         private EncryptionService $encryptionService,
+        private ReportService $reportService,
     ) {
     }
 
@@ -30,5 +31,10 @@ readonly class CommandContainerService
     public function getEncryptionService(): EncryptionService
     {
         return $this->encryptionService;
+    }
+
+    public function getReportService(): ReportService
+    {
+        return $this->reportService;
     }
 }

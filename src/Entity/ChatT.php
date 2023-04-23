@@ -30,10 +30,14 @@ class ChatT
     #[ORM\OneToOne(mappedBy: 'chat_t', cascade: ['persist', 'remove'])]
     private CommandT $command_t;
 
+    #[ORM\OneToMany(mappedBy: 'chat_t', targetEntity: Report::class, orphanRemoval: true)]
+    private Collection $reports;
+
     public function __construct()
     {
         $this->message_ts = new ArrayCollection();
         $this->command_t = new CommandT();
+        $this->reports = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -120,6 +124,36 @@ class ChatT
         }
 
         $this->command_t = $command_t;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Report>
+     */
+    public function getReports(): Collection
+    {
+        return $this->reports;
+    }
+
+    public function addReport(Report $report): self
+    {
+        if (!$this->reports->contains($report)) {
+            $this->reports->add($report);
+            $report->setChatT($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReport(Report $report): self
+    {
+        if ($this->reports->removeElement($report)) {
+            // set the owning side to null (unless already changed)
+            if ($report->getChatT() === $this) {
+                $report->setChatT(null);
+            }
+        }
 
         return $this;
     }

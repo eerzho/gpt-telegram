@@ -2,6 +2,7 @@
 
 namespace App\Constant;
 
+use App\TelegramCommand\BugTrack;
 use App\TelegramCommand\Cancel;
 use App\TelegramCommand\Help;
 use App\TelegramCommand\MySettings;
@@ -18,11 +19,12 @@ class TelegramCommandRegistry
         return [
             Help::class,
             MySettings::class,
+            Cancel::class,
             SetToken::class,
             RemoveToken::class,
             SetModel::class,
             RemoveModel::class,
-            Cancel::class,
+            BugTrack::class,
         ];
     }
 
@@ -32,11 +34,12 @@ class TelegramCommandRegistry
             Start::class,
             Help::class,
             MySettings::class,
+            Cancel::class,
             SetToken::class,
             RemoveToken::class,
             SetModel::class,
             RemoveModel::class,
-            Cancel::class,
+            BugTrack::class,
         ];
     }
 }
