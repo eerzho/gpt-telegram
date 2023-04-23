@@ -18,7 +18,7 @@ class ChatT
     #[ORM\Column]
     private ?int $telegram_id = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $chat_gpt_api_token = null;
 
     #[ORM\Column(length: 255, options: ['default' => 'gpt-3.5-turbo'])]
