@@ -22,7 +22,7 @@
         "symfony/http-foundation": "6.2.*",
         "symfony/runtime": "6.2.*",
         "symfony/yaml": "6.2.*",
-        "telegram-bot/api": "^2.3"
+        "telegram-bot/api": "dev-master"
     },
     "config": {
         "allow-plugins": {

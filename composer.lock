@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "49fd628f1d9976feef43fb21c59d7d18",
+    "content-hash": "cf5cf22bf8cdf56cd7d12fa8db7193ba",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -4533,31 +4533,31 @@
         },
         {
             "name": "telegram-bot/api",
-            "version": "v2.3.26",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TelegramBot/Api.git",
-                "reference": "58897c23420a678ab2debef7a73834b54c14e796"
+                "reference": "c9fe92e5b085ea6c53701ae958a7d33f34e57927"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/58897c23420a678ab2debef7a73834b54c14e796",
-                "reference": "58897c23420a678ab2debef7a73834b54c14e796",
+                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/c9fe92e5b085ea6c53701ae958a7d33f34e57927",
+                "reference": "c9fe92e5b085ea6c53701ae958a7d33f34e57927",
                 "shasum": ""
             },
             "require": {
                 "ext-curl": "*",
+                "ext-json": "*",
                 "php": ">=5.5.0"
             },
             "require-dev": {
-                "codeception/codeception": "*",
-                "phpunit/phpunit": "~4.0",
-                "squizlabs/php_codesniffer": "2.*"
+                "symfony/phpunit-bridge": "*"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
             "autoload": {
@@ -4587,9 +4587,9 @@
             ],
             "support": {
                 "issues": "https://github.com/TelegramBot/Api/issues",
-                "source": "https://github.com/TelegramBot/Api/tree/v2.3.26"
+                "source": "https://github.com/TelegramBot/Api/tree/master"
             },
-            "time": "2023-04-21T18:10:37+00:00"
+            "time": "2023-04-24T10:41:03+00:00"
         }
     ],
     "packages-dev": [
@@ -4745,7 +4745,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "telegram-bot/api": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

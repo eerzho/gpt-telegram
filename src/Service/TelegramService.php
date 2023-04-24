@@ -56,9 +56,8 @@ readonly class TelegramService
 
         $this->client->on(function (Update $update) {
             $message = $update->getMessage() ?? $update->getEditedMessage();
-            if ($message && $message->getText()) {
-                $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
-                $this->sendMessage($update->getMessage(), $this->updateProcess($chatT, $message));
+            if ($message) {
+                $this->processMessage($message);
             }
         }, function () {
             return true;
@@ -74,9 +73,7 @@ readonly class TelegramService
         foreach ($this->client->getBot()->getUpdates() as $update) {
             $message = $update->getMessage() ?? $update->getEditedMessage();
             if ($message) {
-                $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
-                $resultText = $this->updateProcess($chatT, $message);
-                $this->sendMessage($message, $resultText);
+                $this->processMessage($message);
             }
         }
     }
@@ -93,6 +90,39 @@ readonly class TelegramService
                 return new $commandClass();
             }, TelegramCommandRegistry::getShowCommands())
         );
+    }
+
+    private function processMessage(Message $message): void
+    {
+        $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
+        foreach ($this->getMessageType() as $type => $response) {
+            if ($message->$type()) {
+                if (is_callable($response)) {
+                    $response($chatT, $message);
+                } else {
+                    $this->sendMessage($message, $response);
+                }
+                break;
+            }
+        }
+    }
+
+    private function getMessageType(): array
+    {
+        $typeErrorText = " seriously?\nI will not accept this message :)";
+
+        return [
+            'getText' => function (ChatT $chatT, Message $message) {
+                $resultText = $this->updateProcess($chatT, $message);
+                $this->sendMessage($message, $resultText);
+            },
+            'getDocument' => "Document".$typeErrorText,
+            'getSticker' => "Sticker".$typeErrorText,
+            'getPhoto' => "Photo".$typeErrorText,
+            'getPoll' => "Pool".$typeErrorText,
+            'getLocation' => "Location".$typeErrorText,
+            'getVideo' => "Video".$typeErrorText,
+        ];
     }
 
     private function sendMessage(Message $message, $replyText): void
