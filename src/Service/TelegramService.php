@@ -57,7 +57,7 @@ readonly class TelegramService
         $this->client->on(function (Update $update) {
             $message = $update->getMessage() ?? $update->getEditedMessage();
             if ($message) {
-                $this->processMessage($message);
+                $this->messageProcess($message);
             }
         }, function () {
             return true;
@@ -73,7 +73,7 @@ readonly class TelegramService
         foreach ($this->client->getBot()->getUpdates() as $update) {
             $message = $update->getMessage() ?? $update->getEditedMessage();
             if ($message) {
-                $this->processMessage($message);
+                $this->messageProcess($message);
             }
         }
     }
@@ -92,19 +92,29 @@ readonly class TelegramService
         );
     }
 
-    private function processMessage(Message $message): void
+    private function messageProcess(Message $message): void
     {
+        $waiMessage = $this->client->getBot()->sendMessage(
+            $message->getChat()->getId(),
+            "I'm diving into the depths of my algorithms..."
+        );
+        $this->client->getBot()->sendChatAction($message->getChat()->getId(), 'typing');
+
         $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
+        $resultText = 'Try again';
         foreach ($this->getMessageType() as $type => $response) {
             if ($message->$type()) {
                 if (is_callable($response)) {
-                    $response($chatT, $message);
+                    $resultText = $response($chatT, $message);
                 } else {
-                    $this->sendMessage($message, $response);
+                    $resultText = $response;
                 }
                 break;
             }
         }
+
+        $this->client->getBot()->deleteMessage($waiMessage->getChat()->getId(), $waiMessage->getMessageId());
+        $this->sendMessage($message, $resultText);
     }
 
     private function getMessageType(): array
@@ -113,8 +123,7 @@ readonly class TelegramService
 
         return [
             'getText' => function (ChatT $chatT, Message $message) {
-                $resultText = $this->updateProcess($chatT, $message);
-                $this->sendMessage($message, $resultText);
+                return $this->textProcess($chatT, $message);
             },
             'getDocument' => "Document".$typeErrorText,
             'getSticker' => "Sticker".$typeErrorText,
@@ -125,9 +134,9 @@ readonly class TelegramService
         ];
     }
 
-    private function sendMessage(Message $message, $replyText): void
+    private function sendMessage(Message $message, $replyText): Message
     {
-        $this->client->getBot()->sendMessage(
+        return $this->client->getBot()->sendMessage(
             $message->getChat()->getId(),
             $replyText,
             parseMode: 'Markdown',
@@ -135,7 +144,7 @@ readonly class TelegramService
         );
     }
 
-    private function updateProcess(ChatT $chatT, Message $message): string
+    private function textProcess(ChatT $chatT, Message $message): string
     {
         if ($chatT->getCommandT()->isActive()) {
             $resultText = $this->getCommandResult($chatT, $message);
