@@ -120,7 +120,7 @@ readonly class TelegramService
         return [
             'getText' => function (ChatT $chatT, Message $message) {
                 return $this->textProcess($chatT, $message);
-            }
+            },
         ];
     }
 
@@ -184,9 +184,10 @@ readonly class TelegramService
 
             $messageTs[] = $userMessage;
 
+            $botMessageContent = $this->chatGptService->sendMessages($messageTs, $chatT);
             $botMessage = (new MessageT())
                 ->setRole('assistant')
-                ->setContent($this->encryptionService->encrypt($this->chatGptService->sendMessages($messageTs, $chatT)))
+                ->setContent($this->encryptionService->encrypt($botMessageContent))
                 ->setChatT($chatT);
 
             if ($this->messageTService->save($userMessage) &&
@@ -195,7 +196,7 @@ readonly class TelegramService
                 $this->manager->flush();
                 $this->manager->getConnection()->commit();
 
-                $resultText = $this->encryptionService->decrypt($botMessage->getContent());
+                $resultText = $botMessageContent;
             }
 
         } catch (GuzzleException $exception) {
