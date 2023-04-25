@@ -101,13 +101,11 @@ readonly class TelegramService
         $this->client->getBot()->sendChatAction($message->getChat()->getId(), 'typing');
 
         $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
-        $resultText = 'Try again';
+        $resultText = "Seriously?\nI will not accept this message :)";
         foreach ($this->getMessageType() as $type => $response) {
             if ($message->$type()) {
                 if (is_callable($response)) {
                     $resultText = $response($chatT, $message);
-                } else {
-                    $resultText = $response;
                 }
                 break;
             }
@@ -119,18 +117,10 @@ readonly class TelegramService
 
     private function getMessageType(): array
     {
-        $typeErrorText = " seriously?\nI will not accept this message :)";
-
         return [
             'getText' => function (ChatT $chatT, Message $message) {
                 return $this->textProcess($chatT, $message);
-            },
-            'getDocument' => "Document".$typeErrorText,
-            'getSticker' => "Sticker".$typeErrorText,
-            'getPhoto' => "Photo".$typeErrorText,
-            'getPoll' => "Pool".$typeErrorText,
-            'getLocation' => "Location".$typeErrorText,
-            'getVideo' => "Video".$typeErrorText,
+            }
         ];
     }
 
