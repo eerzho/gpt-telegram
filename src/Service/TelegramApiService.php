@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Constant\TelegramCommandRegistry;
 use App\Entity\ChatT;
 use App\Entity\MessageT;
 use App\Interface\CommandPostProcessInterface;
@@ -12,10 +13,12 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Messenger\MessageBusInterface;
+use TelegramBot\Api\Types\ArrayOfBotCommand;
+use TelegramBot\Api\Types\BotCommand;
 use TelegramBot\Api\Types\Message;
 use TelegramBot\Api\Types\Update;
 
-readonly class TelegramService
+readonly class TelegramApiService
 {
     private ServiceLocator $commandLocator;
 
@@ -143,6 +146,73 @@ readonly class TelegramService
                 replyToMessageId: $message->getMessageId()
             );
             $this->manager->flush();
+        }
+    }
+
+    public function deleteWebhook(): mixed
+    {
+        return $this->telegramApi->getBotApi()->deleteWebhook();
+    }
+
+    public function setWebhook(string $url): string
+    {
+        return $this->telegramApi->getBotApi()->setWebhook($url);
+    }
+
+    public function setCommands(): mixed
+    {
+        $commandsArray = [];
+        foreach (TelegramCommandRegistry::getShowCommands() as $commandClass) {
+            $command = $this->commandLocator->get($commandClass);
+            if ($command instanceof CommandProcessInterface) {
+                $botCommand = new BotCommand();
+                $botCommand->setCommand($command->getCommand());
+                $botCommand->setDescription($command->getDescription());
+                $commandsArray[] = $botCommand;
+            }
+        }
+
+        return $this->telegramApi->getBotApi()->setMyCommands(new ArrayOfBotCommand($commandsArray));
+    }
+
+    public function getUpdates(): void
+    {
+        $this->deleteWebhook();
+
+        foreach ($this->telegramApi->getBotApi()->getUpdates() as $update) {
+            if (!$update->getMessage()) {
+                return;
+            }
+
+            if (!$update->getMessage()->getText()) {
+                $this->telegramApi->getBotApi()->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    "Seriously?\nI will not accept this message :)",
+                    replyToMessageId: $update->getMessage()->getMessageId()
+                );
+
+                return;
+            }
+
+            $chatT = $this->chatTService->getChatByTelegramId($update->getMessage()->getChat()->getId());
+
+            if ($chatT->getCommandT()->isActive()) {
+                $this->telegramApi->getBotApi()->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    $this->getCommandPostProcessResult($chatT, $update->getMessage()),
+                    replyToMessageId: $update->getMessage()->getMessageId()
+                );
+
+                return;
+            }
+
+            $waiMessage = $this->telegramApi->getBotApi()->sendMessage(
+                $update->getMessage()->getChat()->getId(),
+                "I'm diving into the depths of my algorithms...",
+            );
+            $this->telegramApi->getBotApi()->sendChatAction($update->getMessage()->getChat()->getId(), 'typing');
+
+            $this->sendMessageToCpt($chatT, $update->getMessage(), $waiMessage);
         }
     }
 }

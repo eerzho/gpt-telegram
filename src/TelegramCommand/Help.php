@@ -31,12 +31,10 @@ readonly class Help implements CommandProcessInterface
     public function process(Message $message): CommandResult
     {
         $text = 'Commands:';
-        foreach ($this->commandLocator->getProvidedServices() as $commandClass) {
-            if (in_array($commandClass, TelegramCommandRegistry::getShowCommands())) {
-                $command = $this->commandLocator->get($commandClass);
-                if ($command instanceof CommandProcessInterface) {
-                    $text .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
-                }
+        foreach (TelegramCommandRegistry::getShowCommands() as $commandClass) {
+            $command = $this->commandLocator->get($commandClass);
+            if ($command instanceof CommandProcessInterface) {
+                $text .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
             }
         }
 

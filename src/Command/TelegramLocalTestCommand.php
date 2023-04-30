@@ -10,11 +10,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:telegram:set-commands',
-    description: 'Sets commands for telegram bot',
-    aliases: ['t:commands']
+    name: 'app:telegram:local-test',
+    description: 'Local messages test',
+    aliases: ['t:test']
 )]
-class TelegramSetCommands extends Command
+class TelegramLocalTestCommand extends Command
 {
     public function __construct(private readonly TelegramApiService $telegramApiService)
     {
@@ -25,8 +25,10 @@ class TelegramSetCommands extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        $this->telegramApiService->setCommands();
-        $io->success('Commands set success!');
+
+        $this->telegramApiService->getUpdates();
+
+        $io->success('Success!');
 
         return Command::SUCCESS;
     }

@@ -6,11 +6,11 @@ use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
-class EncryptionService
+readonly class EncryptionService
 {
     private Key $key;
 
-    public function __construct(private readonly ParameterBagInterface $parameterBag)
+    public function __construct(private ParameterBagInterface $parameterBag)
     {
         $this->key = Key::loadFromAsciiSafeString($this->parameterBag->get('app.encryption.key'));
     }
