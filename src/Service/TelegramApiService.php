@@ -70,36 +70,9 @@ readonly class TelegramApiService
             if (!$update->getMessage()) {
                 return;
             }
-
-            if (!$update->getMessage()->getText()) {
-                $this->telegramApi->getBotApi()->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    "Seriously?\nI will not accept this message :)",
-                    replyToMessageId: $update->getMessage()->getMessageId()
-                );
-
-                return;
-            }
-
-            $chatT = $this->chatTService->getChatByTelegramId($update->getMessage()->getChat()->getId());
-
-            if ($chatT->getCommandT()->isActive()) {
-                $this->telegramApi->getBotApi()->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    $this->getCommandPostProcessResult($chatT, $update->getMessage()),
-                    replyToMessageId: $update->getMessage()->getMessageId()
-                );
-
-                return;
-            }
-
-            $waiMessage = $this->telegramApi->getBotApi()->sendMessage(
-                $update->getMessage()->getChat()->getId(),
-                "I'm diving into the depths of my algorithms...",
-            );
-            $this->telegramApi->getBotApi()->sendChatAction($update->getMessage()->getChat()->getId(), 'typing');
-
-            $this->messageBus->dispatch(new SendRequestToGpt($chatT, $update->getMessage(), $waiMessage));
+            $this->processText($update->getMessage(), function (ChatT $chatT, Message $message, Message $waitMessage) {
+                $this->messageBus->dispatch(new SendRequestToGpt($chatT, $message, $waitMessage));
+            });
         }, function () {
             return true;
         });
@@ -183,36 +156,42 @@ readonly class TelegramApiService
             if (!$update->getMessage()) {
                 return;
             }
-
-            if (!$update->getMessage()->getText()) {
-                $this->telegramApi->getBotApi()->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    "Seriously?\nI will not accept this message :)",
-                    replyToMessageId: $update->getMessage()->getMessageId()
-                );
-
-                return;
-            }
-
-            $chatT = $this->chatTService->getChatByTelegramId($update->getMessage()->getChat()->getId());
-
-            if ($chatT->getCommandT()->isActive()) {
-                $this->telegramApi->getBotApi()->sendMessage(
-                    $update->getMessage()->getChat()->getId(),
-                    $this->getCommandPostProcessResult($chatT, $update->getMessage()),
-                    replyToMessageId: $update->getMessage()->getMessageId()
-                );
-
-                return;
-            }
-
-            $waiMessage = $this->telegramApi->getBotApi()->sendMessage(
-                $update->getMessage()->getChat()->getId(),
-                "I'm diving into the depths of my algorithms...",
-            );
-            $this->telegramApi->getBotApi()->sendChatAction($update->getMessage()->getChat()->getId(), 'typing');
-
-            $this->sendMessageToCpt($chatT, $update->getMessage(), $waiMessage);
+            $this->processText($update->getMessage(), function (ChatT $chatT, Message $message, Message $waitMessage) {
+                $this->sendMessageToCpt($chatT, $message, $waitMessage);
+            });
         }
+    }
+
+    private function processText(Message $message, callable $sendMessage): void
+    {
+        if (!$message->getText()) {
+            $this->telegramApi->getBotApi()->sendMessage(
+                $message->getChat()->getId(),
+                "Seriously?\nI will not accept this message :)",
+                replyToMessageId: $message->getMessageId()
+            );
+
+            return;
+        }
+
+        $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
+
+        if ($chatT->getCommandT()->isActive()) {
+            $this->telegramApi->getBotApi()->sendMessage(
+                $message->getChat()->getId(),
+                $this->getCommandPostProcessResult($chatT, $message),
+                replyToMessageId: $message->getMessageId()
+            );
+
+            return;
+        }
+
+        $waitMessage = $this->telegramApi->getBotApi()->sendMessage(
+            $message->getChat()->getId(),
+            "I'm diving into the depths of my algorithms...",
+        );
+        $this->telegramApi->getBotApi()->sendChatAction($message->getChat()->getId(), 'typing');
+
+        $sendMessage($chatT, $message, $waitMessage);
     }
 }
