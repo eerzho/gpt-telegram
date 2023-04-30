@@ -2,19 +2,24 @@
 
 namespace App\TelegramCommand;
 
-use App\Entity\ChatT;
+use App\Interface\CommandProcessInterface;
+use App\Model\CommandResult;
 use TelegramBot\Api\Types\Message;
 
-class Start extends BotCommandCustom
+readonly class Start implements CommandProcessInterface
 {
-    protected $command = 'start';
-
-    protected $description = 'Hello world!';
-
-    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
+    public function getCommand(): string
     {
-        $resultText = 'Hello! Ask me something :)';
+        return 'start';
+    }
 
-        return true;
+    public function getDescription(): string
+    {
+        return 'Hello world!';
+    }
+
+    public function process(Message $message): CommandResult
+    {
+        return new CommandResult(true, 'Hello! Ask me something :)');
     }
 }

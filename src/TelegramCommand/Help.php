@@ -2,24 +2,44 @@
 
 namespace App\TelegramCommand;
 
-use App\Entity\ChatT;
+use App\Constant\TelegramCommandRegistry;
+use App\Interface\CommandProcessInterface;
+use App\Model\CommandResult;
+use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use TelegramBot\Api\Types\Message;
 
-class Help extends BotCommandCustom
+readonly class Help implements CommandProcessInterface
 {
-    protected $command = 'help';
+    private ServiceLocator $commandLocator;
 
-    protected $description = 'Show all list of commands';
-
-    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
+    public function __construct(#[TaggedLocator('app.command')] ServiceLocator $commandLocator)
     {
-        $resultText = 'Commands:';
-        array_map(function (string $commandClass) use (&$resultText) {
-            /** @var BotCommandCustom $command */
-            $command = new $commandClass();
-            $resultText .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
-        }, $this->getCommands());
+        $this->commandLocator = $commandLocator;
+    }
 
-        return true;
+    public function getCommand(): string
+    {
+        return 'help';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Show all list of commands';
+    }
+
+    public function process(Message $message): CommandResult
+    {
+        $text = 'Commands:';
+        foreach ($this->commandLocator->getProvidedServices() as $commandClass) {
+            if (in_array($commandClass, TelegramCommandRegistry::getShowCommands())) {
+                $command = $this->commandLocator->get($commandClass);
+                if ($command instanceof CommandProcessInterface) {
+                    $text .= sprintf("\n\t /%s - %s", $command->getCommand(), $command->getDescription());
+                }
+            }
+        }
+
+        return new CommandResult(true, $text);
     }
 }

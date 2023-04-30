@@ -7,7 +7,7 @@ use App\Model\CommandResult;
 use App\Service\ChatTService;
 use TelegramBot\Api\Types\Message;
 
-readonly class RemoveModel implements CommandProcessInterface
+readonly class Settings implements CommandProcessInterface
 {
     public function __construct(private ChatTService $chatTService)
     {
@@ -15,12 +15,12 @@ readonly class RemoveModel implements CommandProcessInterface
 
     public function getCommand(): string
     {
-        return 'removemodel';
+        return 'settings';
     }
 
     public function getDescription(): string
     {
-        return 'Set default model';
+        return 'List of your settings';
     }
 
     public function process(Message $message): CommandResult
@@ -28,7 +28,7 @@ readonly class RemoveModel implements CommandProcessInterface
         $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
 
         return new CommandResult(
-            $this->chatTService->save($chatT->setChatGptModel(null)),
+            true,
             $this->chatTService->getChatSettingsForTelegram($chatT)
         );
     }

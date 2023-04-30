@@ -2,214 +2,147 @@
 
 namespace App\Service;
 
-use App\Constant\TelegramCommandRegistry;
 use App\Entity\ChatT;
 use App\Entity\MessageT;
-use App\TelegramCommand\BotCommandCustom;
+use App\Interface\CommandPostProcessInterface;
+use App\Interface\CommandProcessInterface;
+use App\Message\SendRequestToGpt;
+use App\Service\ApiService\TelegramApi;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
-use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
+use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Messenger\MessageBusInterface;
 use TelegramBot\Api\Types\Message;
 use TelegramBot\Api\Types\Update;
 
 readonly class TelegramService
 {
+    private ServiceLocator $commandLocator;
+
     public function __construct(
-        private TelegramApiClient $client,
-        private CommandContainerService $commandContainerService,
+        private TelegramApi $telegramApi,
         private ChatTService $chatTService,
-        private MessageTService $messageTService,
-        private ChatGptService $chatGptService,
         private EntityManagerInterface $manager,
-        private EncryptionService $encryptionService
+        private MessageBusInterface $messageBus,
+        private ChatGptApiService $chatGptApiService,
+        private EncryptionService $encryptionService,
+        private MessageTService $messageTService,
+        #[TaggedLocator('app.command')] ServiceLocator $commandLocator
     ) {
+        $this->commandLocator = $commandLocator;
     }
 
-    public function answerByWebhook(): void
+    public function runBot(): void
     {
-        array_map(function (string $commandClass) {
-            /** @var BotCommandCustom $command */
-            $command = new $commandClass($this->commandContainerService);
+        $this->listenCommand();
 
-            $this->client->command($command->getCommand(), function (Message $message) use ($command) {
-                $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
+        $this->listenText();
 
-                $this->manager->getConnection()->beginTransaction();
-                $resultText = 'Something went wrong';
-                try {
+        $this->telegramApi->run();
+    }
 
-                    if ($command->process($chatT, $message, $resultText)) {
+    private function listenCommand(): void
+    {
+        foreach ($this->commandLocator->getProvidedServices() as $commandClass) {
+            $command = $this->commandLocator->get($commandClass);
+            if ($command instanceof CommandProcessInterface) {
+                $this->telegramApi->command($command->getCommand(), function (Message $message) use ($command) {
+                    $commandResult = $command->process($message);
+                    if ($commandResult->isSuccess()) {
+                        $this->telegramApi->getBotApi()->sendMessage(
+                            $message->getChat()->getId(),
+                            $commandResult->getText(),
+                            replyToMessageId: $message->getMessageId()
+                        );
                         $this->manager->flush();
-                        $this->manager->getConnection()->commit();
                     }
-
-                } catch (Exception $exception) {
-
-                    $this->manager->getConnection()->rollBack();
-                    $resultText = sprintf('Server return %d code', $exception->getCode());
-                }
-
-                $this->sendMessage($message, $resultText);
-            });
-
-        }, TelegramCommandRegistry::getListenCommands());
-
-        $this->client->on(function (Update $update) {
-            $message = $update->getMessage() ?? $update->getEditedMessage();
-            if ($message) {
-                $this->messageProcess($message);
+                });
             }
+        }
+    }
+
+    private function listenText(): void
+    {
+        $this->telegramApi->on(function (Update $update) {
+            if (!$update->getMessage()) {
+                return;
+            }
+
+            if (!$update->getMessage()->getText()) {
+                $this->telegramApi->getBotApi()->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    "Seriously?\nI will not accept this message :)",
+                    replyToMessageId: $update->getMessage()->getMessageId()
+                );
+
+                return;
+            }
+
+            $chatT = $this->chatTService->getChatByTelegramId($update->getMessage()->getChat()->getId());
+
+            if ($chatT->getCommandT()->isActive()) {
+                $this->telegramApi->getBotApi()->sendMessage(
+                    $update->getMessage()->getChat()->getId(),
+                    $this->getCommandPostProcessResult($chatT, $update->getMessage()),
+                    replyToMessageId: $update->getMessage()->getMessageId()
+                );
+
+                return;
+            }
+
+            $waiMessage = $this->telegramApi->getBotApi()->sendMessage(
+                $update->getMessage()->getChat()->getId(),
+                "I'm diving into the depths of my algorithms...",
+            );
+            $this->telegramApi->getBotApi()->sendChatAction($update->getMessage()->getChat()->getId(), 'typing');
+
+            $this->messageBus->dispatch(new SendRequestToGpt($chatT, $update->getMessage(), $waiMessage));
         }, function () {
             return true;
         });
-
-        $this->client->run();
     }
 
-    public function getUpdates(): void
+    private function getCommandPostProcessResult(ChatT $chatT, Message $message): string
     {
-        $this->client->getBot()->deleteWebhook();
-
-        foreach ($this->client->getBot()->getUpdates() as $update) {
-            $message = $update->getMessage() ?? $update->getEditedMessage();
-            if ($message) {
-                $this->messageProcess($message);
-            }
-        }
-    }
-
-    public function setWebhook(string $url): void
-    {
-        $this->client->getBot()->setWebhook($url);
-    }
-
-    public function setCommands(): void
-    {
-        $this->client->getBot()->setMyCommands(
-            array_map(function (string $commandClass) {
-                return new $commandClass();
-            }, TelegramCommandRegistry::getShowCommands())
-        );
-    }
-
-    private function messageProcess(Message $message): void
-    {
-        $waiMessage = $this->client->getBot()->sendMessage(
-            $message->getChat()->getId(),
-            "I'm diving into the depths of my algorithms..."
-        );
-        $this->client->getBot()->sendChatAction($message->getChat()->getId(), 'typing');
-
-        $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
-        $resultText = "Seriously?\nI will not accept this message :)";
-        foreach ($this->getMessageType() as $type => $response) {
-            if ($message->$type()) {
-                if (is_callable($response)) {
-                    $resultText = $response($chatT, $message);
-                }
-                break;
-            }
-        }
-
-        $this->client->getBot()->deleteMessage($waiMessage->getChat()->getId(), $waiMessage->getMessageId());
-        $this->sendMessage($message, $resultText);
-    }
-
-    private function getMessageType(): array
-    {
-        return [
-            'getText' => function (ChatT $chatT, Message $message) {
-                return $this->textProcess($chatT, $message);
-            },
-        ];
-    }
-
-    private function sendMessage(Message $message, $replyText): Message
-    {
-        return $this->client->getBot()->sendMessage(
-            $message->getChat()->getId(),
-            $replyText,
-            parseMode: 'Markdown',
-            replyToMessageId: $message->getMessageId()
-        );
-    }
-
-    private function textProcess(ChatT $chatT, Message $message): string
-    {
-        if ($chatT->getCommandT()->isActive()) {
-            $resultText = $this->getCommandResult($chatT, $message);
-        } else {
-            $resultText = $this->getTextResult($chatT, $message);
-        }
-
-        return $resultText;
-    }
-
-    private function getCommandResult(ChatT $chatT, Message $message): string
-    {
-        $className = $chatT->getCommandT()->getClass();
-
-        /** @var BotCommandCustom $telegramCommand */
-        $telegramCommand = new $className($this->commandContainerService);
-
-        $this->manager->getConnection()->beginTransaction();
+        $command = $this->commandLocator->get($chatT->getCommandT()->getClass());
         $resultText = 'Something went wrong';
-        try {
-
-            if ($telegramCommand->postProcess($chatT, $message, $resultText)) {
+        if ($command instanceof CommandPostProcessInterface) {
+            $commandResult = $command->postProcess($chatT, $message);
+            if ($commandResult->isSuccess()) {
                 $this->manager->flush();
-                $this->manager->getConnection()->commit();
+                $resultText = $commandResult->getText();
             }
-        } catch (Exception $exception) {
-
-            $this->manager->getConnection()->rollBack();
-            $resultText = sprintf('Server return %d code', $exception->getCode());
         }
 
         return $resultText;
     }
 
-    private function getTextResult(ChatT $chatT, Message $message): string
+    public function sendMessageToCpt(ChatT $chatT, Message $message, Message $waitMessage): void
     {
-        $this->manager->getConnection()->beginTransaction();
-        $resultText = 'Something went wrong';
-        try {
+        $gptMessage = $this->chatGptApiService->getAssistantMessage($chatT, $message);
 
-            $messageTs = $chatT->getMessageTs()->getValues();
+        $userMessage = (new MessageT())
+            ->setChatT($chatT)
+            ->setRole('user')
+            ->setContent($this->encryptionService->encrypt($message->getText()));
+        $botMessage = (new MessageT())
+            ->setChatT($chatT)
+            ->setRole('assistant')
+            ->setContent($this->encryptionService->encrypt($gptMessage->getContent()));
 
-            $userMessage = (new MessageT())
-                ->setRole('user')
-                ->setContent($this->encryptionService->encrypt($message->getText()))
-                ->setChatT($chatT);
-
-            $messageTs[] = $userMessage;
-
-            $botMessageContent = $this->chatGptService->sendMessages($messageTs, $chatT);
-            $botMessage = (new MessageT())
-                ->setRole('assistant')
-                ->setContent($this->encryptionService->encrypt($botMessageContent))
-                ->setChatT($chatT);
-
-            if ($this->messageTService->save($userMessage) &&
-                $this->messageTService->save($botMessage)) {
-
-                $this->manager->flush();
-                $this->manager->getConnection()->commit();
-
-                $resultText = $botMessageContent;
-            }
-
-        } catch (GuzzleException $exception) {
-
-            $this->manager->getConnection()->rollBack();
-            $resultText = sprintf('ChatGpt Api return %d code', $exception->getCode());
-
-        } catch (Exception $exception) {
-
-            $this->manager->getConnection()->rollBack();
-            $resultText = sprintf('Server return %d code', $exception->getCode());
+        if ($this->messageTService->save($userMessage) &&
+            $this->messageTService->save($botMessage)) {
+            $this->telegramApi->getBotApi()->deleteMessage(
+                $waitMessage->getChat()->getId(),
+                $waitMessage->getMessageId()
+            );
+            $this->telegramApi->getBotApi()->sendMessage(
+                $message->getChat()->getId(),
+                $gptMessage->getContent(),
+                parseMode: 'Markdown',
+                replyToMessageId: $message->getMessageId()
+            );
+            $this->manager->flush();
         }
-
-        return $resultText;
     }
 }

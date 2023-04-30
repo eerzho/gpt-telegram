@@ -17,14 +17,8 @@ class TelegramController extends AbstractController
     #[Route('/handle', name: 'app_telegram_handle', methods: ['POST'])]
     public function handle(): JsonResponse
     {
-        $this->telegramService->answerByWebhook();
+        $this->telegramService->runBot();
 
-        return $this->json(['message' => 'Success!']);
-    }
-
-    #[Route('/handle', name: 'app_telegram_handlehello', methods: ['GET'])]
-    public function handleHello(): JsonResponse
-    {
         return $this->json(['message' => 'Success!']);
     }
 }

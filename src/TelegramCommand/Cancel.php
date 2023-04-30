@@ -2,25 +2,44 @@
 
 namespace App\TelegramCommand;
 
-use App\Entity\ChatT;
+use App\Interface\CommandProcessInterface;
+use App\Model\CommandResult;
+use App\Service\ChatTService;
+use App\Service\CommandTService;
+use App\Service\MessageTService;
 use TelegramBot\Api\Types\Message;
 
-class Cancel extends BotCommandCustom
+readonly class Cancel implements CommandProcessInterface
 {
-    protected $command = 'cancel';
+    public function __construct(
+        private ChatTService $chatTService,
+        private CommandTService $commandTService,
+        private MessageTService $messageTService
+    ) {
+    }
 
-    protected $description = 'Cancel active command or to end a chat with Gpt';
-
-    public function process(ChatT $chatT, Message $message, &$resultText = ''): bool
+    public function getCommand(): string
     {
+        return 'cancel';
+    }
+
+    public function getDescription(): string
+    {
+        return 'Cancel active command or to end a chat with Gpt';
+    }
+
+    public function process(Message $message): CommandResult
+    {
+        $chatT = $this->chatTService->getChatByTelegramId($message->getChat()->getId());
+
         if ($chatT->getCommandT()->isActive()) {
-            $isSave = $this->commandContainerService->getCommandTService()->stopCommand($chatT->getCommandT());
-            $resultText = 'Command canceled';
+            $isSave = $this->commandTService->stopCommand($chatT->getCommandT());
+            $text = 'Command canceled';
         } else {
-            $isSave = $this->commandContainerService->getMessageTService()->removeAllByChat($chatT);
-            $resultText = 'Chat cleared';
+            $isSave = $this->messageTService->removeAllByChat($chatT);
+            $text = 'Chat cleared';
         }
 
-        return $isSave;
+        return new CommandResult($isSave, $text);
     }
 }

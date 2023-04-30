@@ -5,7 +5,7 @@ namespace App\Service;
 use App\Entity\CommandT;
 use App\Repository\CommandTRepository;
 
-readonly class CommandService
+readonly class CommandTService
 {
     public function __construct(private CommandTRepository $commandRepository)
     {
