@@ -5,11 +5,7 @@ namespace App\Constant;
 use App\TelegramCommand\BugTrack;
 use App\TelegramCommand\Cancel;
 use App\TelegramCommand\Help;
-use App\TelegramCommand\RemoveModel;
-use App\TelegramCommand\RemoveToken;
-use App\TelegramCommand\SetModel;
 use App\TelegramCommand\Settings;
-use App\TelegramCommand\SetToken;
 use App\TelegramCommand\Start;
 
 class TelegramCommandRegistry
@@ -20,10 +16,10 @@ class TelegramCommandRegistry
             Help::class,
             Settings::class,
             Cancel::class,
-            SetToken::class,
-            RemoveToken::class,
-            SetModel::class,
-            RemoveModel::class,
+//            SetToken::class,
+//            RemoveToken::class,
+//            SetModel::class,
+//            RemoveModel::class,
             BugTrack::class,
         ];
     }
@@ -35,10 +31,10 @@ class TelegramCommandRegistry
             Help::class,
             Settings::class,
             Cancel::class,
-            SetToken::class,
-            RemoveToken::class,
-            SetModel::class,
-            RemoveModel::class,
+//            SetToken::class,
+//            RemoveToken::class,
+//            SetModel::class,
+//            RemoveModel::class,
             BugTrack::class,
         ];
     }

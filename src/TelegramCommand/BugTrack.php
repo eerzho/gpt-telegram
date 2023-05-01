@@ -51,7 +51,8 @@ readonly class BugTrack implements CommandProcessInterface, CommandPostProcessIn
         $report = (new Report())->setText($message->getText())->setChatT($chatT);
 
         return new CommandResult(
-            $this->reportService->save($report),
+            $this->reportService->save($report) &&
+            $this->commandTService->stopCommand($chatT->getCommandT()),
             "We will definitely solve this problem!\nThank you for helping us improve the bot"
         );
     }
