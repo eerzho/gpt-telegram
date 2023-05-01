@@ -18,6 +18,11 @@ readonly class Settings implements CommandProcessInterface
         return 'settings';
     }
 
+    public function getTextValue(): ?string
+    {
+        return "🛠️";
+    }
+
     public function getDescription(): string
     {
         return 'List of your settings';

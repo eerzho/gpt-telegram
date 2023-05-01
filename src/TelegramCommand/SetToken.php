@@ -25,6 +25,11 @@ readonly class SetToken implements CommandProcessInterface, CommandPostProcessIn
         return 'settoken';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Set your token';

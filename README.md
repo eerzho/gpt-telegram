@@ -52,3 +52,4 @@ Created by [Kévin Dunglas](https://dunglas.fr), co-maintained by [Maxime Helias
 2. Run `php bin/console doctrine:schema:drop -n -q --force --full-database` for drop all data from database
 3. Run `rm migrations/*.php` for delete all migrations file
 4. Run `ngrok http https://localhost:9001 --host-header=rewrite --scheme=https` for start work via ngrok
+5. Run `bin/console messenger:consume async` symfony messenger start listen

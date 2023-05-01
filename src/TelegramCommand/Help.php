@@ -23,6 +23,11 @@ readonly class Help implements CommandProcessInterface
         return 'help';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Show all list of commands';

@@ -26,6 +26,11 @@ readonly class BugTrack implements CommandProcessInterface, CommandPostProcessIn
         return 'bugtrack';
     }
 
+    public function getTextValue(): ?string
+    {
+        return "📨";
+    }
+
     public function getDescription(): string
     {
         return 'Write if you find a bug';

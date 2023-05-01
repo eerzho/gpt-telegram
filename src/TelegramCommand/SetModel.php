@@ -21,6 +21,11 @@ readonly class SetModel implements CommandProcessInterface, CommandPostProcessIn
         return 'setmodel';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Set your model';

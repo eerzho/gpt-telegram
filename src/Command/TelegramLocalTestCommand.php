@@ -25,7 +25,6 @@ class TelegramLocalTestCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-
         $this->telegramApiService->getUpdates();
 
         $io->success('Success!');

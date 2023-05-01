@@ -13,6 +13,11 @@ readonly class Start implements CommandProcessInterface
         return 'start';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Hello world!';

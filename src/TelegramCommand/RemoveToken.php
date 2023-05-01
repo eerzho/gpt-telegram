@@ -18,6 +18,11 @@ readonly class RemoveToken implements CommandProcessInterface
         return 'removetoken';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Set default token';

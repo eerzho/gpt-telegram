@@ -18,6 +18,11 @@ readonly class RemoveModel implements CommandProcessInterface
         return 'removemodel';
     }
 
+    public function getTextValue(): ?string
+    {
+        return null;
+    }
+
     public function getDescription(): string
     {
         return 'Set default model';

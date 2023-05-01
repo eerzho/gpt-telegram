@@ -42,4 +42,13 @@ class TelegramCommandRegistry
             BugTrack::class,
         ];
     }
+
+    public static function getForKeyboard(): array
+    {
+        return [
+            BugTrack::class,
+            Settings::class,
+            Cancel::class,
+        ];
+    }
 }

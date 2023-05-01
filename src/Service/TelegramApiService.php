@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Constant\TelegramCommandRegistry;
+use App\Constant\TelegramSystemMessageText;
 use App\Entity\ChatT;
 use App\Entity\MessageT;
 use App\Interface\CommandPostProcessInterface;
@@ -16,11 +17,14 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use TelegramBot\Api\Types\ArrayOfBotCommand;
 use TelegramBot\Api\Types\BotCommand;
 use TelegramBot\Api\Types\Message;
+use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 readonly class TelegramApiService
 {
     private ServiceLocator $commandLocator;
+
+    private ReplyKeyboardMarkup $keyboard;
 
     public function __construct(
         private TelegramApi $telegramApi,
@@ -50,15 +54,7 @@ readonly class TelegramApiService
             $command = $this->commandLocator->get($commandClass);
             if ($command instanceof CommandProcessInterface) {
                 $this->telegramApi->command($command->getCommand(), function (Message $message) use ($command) {
-                    $commandResult = $command->process($message);
-                    if ($commandResult->isSuccess()) {
-                        $this->telegramApi->getBotApi()->sendMessage(
-                            $message->getChat()->getId(),
-                            $commandResult->getText(),
-                            replyToMessageId: $message->getMessageId()
-                        );
-                        $this->manager->flush();
-                    }
+                    $this->processCommand($command, $message);
                 });
             }
         }
@@ -67,21 +63,46 @@ readonly class TelegramApiService
     private function listenText(): void
     {
         $this->telegramApi->on(function (Update $update) {
-            if (!$update->getMessage()) {
-                return;
+            if ($update->getMessage()) {
+                foreach (TelegramCommandRegistry::getForKeyboard() as $commandClass) {
+                    $command = $this->commandLocator->get($commandClass);
+                    if ($command instanceof CommandProcessInterface &&
+                        $command->getTextValue() == $update->getMessage()->getText()) {
+                        $this->processCommand($command, $update->getMessage());
+
+                        return;
+                    }
+                }
+                $this->processText(
+                    $update->getMessage(),
+                    function (ChatT $chatT, Message $message, Message $waitMessage) {
+                        $this->messageBus->dispatch(new SendRequestToGpt($chatT, $message, $waitMessage));
+                    }
+                );
             }
-            $this->processText($update->getMessage(), function (ChatT $chatT, Message $message, Message $waitMessage) {
-                $this->messageBus->dispatch(new SendRequestToGpt($chatT, $message, $waitMessage));
-            });
         }, function () {
             return true;
         });
     }
 
+    private function processCommand(CommandProcessInterface $command, Message $message): void
+    {
+        $commandResult = $command->process($message);
+        if ($commandResult->isSuccess()) {
+            $this->telegramApi->getBotApi()->sendMessage(
+                $message->getChat()->getId(),
+                $commandResult->getText(),
+                replyToMessageId: $message->getMessageId(),
+                replyMarkup: $this->getKeyboard()
+            );
+            $this->manager->flush();
+        }
+    }
+
     private function getCommandPostProcessResult(ChatT $chatT, Message $message): string
     {
         $command = $this->commandLocator->get($chatT->getCommandT()->getClass());
-        $resultText = 'Something went wrong';
+        $resultText = TelegramSystemMessageText::COMMAND_POST_PROCESS_ERROR->value;
         if ($command instanceof CommandPostProcessInterface) {
             $commandResult = $command->postProcess($chatT, $message);
             if ($commandResult->isSuccess()) {
@@ -117,7 +138,8 @@ readonly class TelegramApiService
                 $message->getChat()->getId(),
                 $gptMessage->getContent(),
                 parseMode: 'Markdown',
-                replyToMessageId: $message->getMessageId()
+                replyToMessageId: $message->getMessageId(),
+                replyMarkup: $this->getKeyboard()
             );
             $this->manager->flush();
         }
@@ -168,8 +190,9 @@ readonly class TelegramApiService
         if (!$message->getText()) {
             $this->telegramApi->getBotApi()->sendMessage(
                 $message->getChat()->getId(),
-                "Seriously?\nI will not accept this message :)",
-                replyToMessageId: $message->getMessageId()
+                TelegramSystemMessageText::MESSAGE_TYPE_ERROR->value,
+                replyToMessageId: $message->getMessageId(),
+                replyMarkup: $this->getKeyboard()
             );
 
             return;
@@ -181,7 +204,8 @@ readonly class TelegramApiService
             $this->telegramApi->getBotApi()->sendMessage(
                 $message->getChat()->getId(),
                 $this->getCommandPostProcessResult($chatT, $message),
-                replyToMessageId: $message->getMessageId()
+                replyToMessageId: $message->getMessageId(),
+                replyMarkup: $this->getKeyboard()
             );
 
             return;
@@ -190,8 +214,9 @@ readonly class TelegramApiService
         if ($chatT->isIsGptProcess()) {
             $this->telegramApi->getBotApi()->sendMessage(
                 $message->getChat()->getId(),
-                "I'm already processing your message",
-                replyToMessageId: $message->getMessageId()
+                TelegramSystemMessageText::ALREADY_PROCESSING->value,
+                replyToMessageId: $message->getMessageId(),
+                replyMarkup: $this->getKeyboard()
             );
 
             return;
@@ -201,10 +226,34 @@ readonly class TelegramApiService
 
         $waitMessage = $this->telegramApi->getBotApi()->sendMessage(
             $message->getChat()->getId(),
-            "I'm diving into the depths of my algorithms...",
+            TelegramSystemMessageText::WAIT_PROCESS->value
         );
         $this->telegramApi->getBotApi()->sendChatAction($message->getChat()->getId(), 'typing');
 
         $sendMessage($chatT, $message, $waitMessage);
+    }
+
+    public function getKeyboard(): ReplyKeyboardMarkup
+    {
+        if (isset($this->keyboard)) {
+            return $this->keyboard;
+        }
+
+        $keyboardArray[] = [];
+        $keyboardCountInOneLine = 4;
+        foreach (TelegramCommandRegistry::getForKeyboard() as $commandClass) {
+            $command = $this->commandLocator->get($commandClass);
+            if ($command instanceof CommandProcessInterface && $command->getTextValue()) {
+
+                if (count(end($keyboardArray)) === $keyboardCountInOneLine) {
+                    $keyboardArray[] = [];
+                }
+
+                $keyboardArray[count($keyboardArray) - 1][] = $command->getTextValue();
+            }
+        }
+        $this->keyboard = new ReplyKeyboardMarkup($keyboardArray, oneTimeKeyboard: false);
+
+        return $this->keyboard;
     }
 }

@@ -23,9 +23,14 @@ readonly class Cancel implements CommandProcessInterface
         return 'cancel';
     }
 
+    public function getTextValue(): ?string
+    {
+        return "🗑️";
+    }
+
     public function getDescription(): string
     {
-        return 'Cancel active command or to end a chat with Gpt';
+        return 'Cancel active command or start new chat with GPT';
     }
 
     public function process(Message $message): CommandResult
@@ -37,7 +42,7 @@ readonly class Cancel implements CommandProcessInterface
             $text = 'Command canceled';
         } else {
             $isSave = $this->messageTService->removeAllByChat($chatT);
-            $text = 'Chat cleared';
+            $text = 'Chat cleared and send a new message to start chat';
         }
 
         return new CommandResult($isSave, $text);
