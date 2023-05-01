@@ -107,7 +107,8 @@ readonly class TelegramApiService
             ->setContent($this->encryptionService->encrypt($gptMessage->getContent()));
 
         if ($this->messageTService->save($userMessage) &&
-            $this->messageTService->save($botMessage)) {
+            $this->messageTService->save($botMessage) &&
+            $this->chatTService->save($chatT->setIsGptProcess(false))) {
             $this->telegramApi->getBotApi()->deleteMessage(
                 $waitMessage->getChat()->getId(),
                 $waitMessage->getMessageId()
@@ -184,6 +185,18 @@ readonly class TelegramApiService
             );
 
             return;
+        }
+
+        if ($chatT->isIsGptProcess()) {
+            $this->telegramApi->getBotApi()->sendMessage(
+                $message->getChat()->getId(),
+                "I'm already processing your message",
+                replyToMessageId: $message->getMessageId()
+            );
+
+            return;
+        } elseif ($this->chatTService->save($chatT->setIsGptProcess(true))) {
+            $this->manager->flush();
         }
 
         $waitMessage = $this->telegramApi->getBotApi()->sendMessage(

@@ -33,6 +33,9 @@ class ChatT
     #[ORM\OneToMany(mappedBy: 'chat_t', targetEntity: Report::class, orphanRemoval: true)]
     private Collection $reports;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $is_gpt_process = false;
+
     public function __construct()
     {
         $this->message_ts = new ArrayCollection();
@@ -154,6 +157,18 @@ class ChatT
                 $report->setChatT(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isIsGptProcess(): bool
+    {
+        return $this->is_gpt_process;
+    }
+
+    public function setIsGptProcess(bool $is_gpt_process): self
+    {
+        $this->is_gpt_process = $is_gpt_process;
 
         return $this;
     }
