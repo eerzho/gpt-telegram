@@ -10,7 +10,7 @@ class ServerErrorException extends HttpException
     {
         parent::__construct(
             $code,
-            sprintf("Server error in %s on request %s with content %s", $class, $url, $content)
+            sprintf("Server error %d in %s on request %s with content %s", $code, $class, $url, $content)
         );
     }
 }

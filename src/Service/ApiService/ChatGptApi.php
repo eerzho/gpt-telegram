@@ -11,8 +11,6 @@ class ChatGptApi extends BaseApi
 {
     protected string $apiPrefix = 'v1';
 
-    private ?string $token = null;
-
     public function __construct(private readonly ParameterBagInterface $parameterBag)
     {
     }
@@ -23,10 +21,6 @@ class ChatGptApi extends BaseApi
             'base_uri' => 'https://api.openai.com',
             'headers' => [
                 'Content-Type' => 'application/json',
-                'Authorization' => sprintf(
-                    'Bearer %s',
-                    $this->token ?? $this->parameterBag->get('app.api.chat_gpt')
-                ),
             ],
         ];
     }
@@ -39,6 +33,12 @@ class ChatGptApi extends BaseApi
         array_unshift($messages, $this->getSystemMessage());
 
         $params = [
+            'headers' => [
+                'Authorization' => sprintf(
+                    'Bearer %s',
+                    $request->getToken() ?? $this->parameterBag->get('app.api.chat_gpt')
+                ),
+            ],
             'json' => [
                 'model' => $request->getModel() ?? 'gpt-3.5-turbo',
                 'messages' => $messages,

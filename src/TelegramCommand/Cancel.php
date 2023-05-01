@@ -42,6 +42,7 @@ readonly class Cancel implements CommandProcessInterface
             $text = 'Command canceled';
         } else {
             $isSave = $this->messageTService->removeAllByChat($chatT);
+            $isSave = $isSave && $this->chatTService->save($chatT->setIsGptProcess(false));
             $text = 'Chat cleared and send a new message to start chat';
         }
 

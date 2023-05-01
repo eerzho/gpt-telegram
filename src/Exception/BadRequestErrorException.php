@@ -10,7 +10,7 @@ class BadRequestErrorException extends HttpException
     {
         parent::__construct(
             $code,
-            sprintf("Bad request error in %s on request %s with content %s", $class, $url, $content)
+            sprintf("Bad request %d error in %s on request %s with content %s", $code, $class, $url, $content)
         );
     }
 }
