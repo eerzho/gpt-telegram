@@ -252,7 +252,7 @@ readonly class TelegramApiService
                 $keyboardArray[count($keyboardArray) - 1][] = $command->getTextValue();
             }
         }
-        $this->keyboard = new ReplyKeyboardMarkup($keyboardArray, oneTimeKeyboard: false);
+        $this->keyboard = new ReplyKeyboardMarkup($keyboardArray, oneTimeKeyboard: false, resizeKeyboard: true);
 
         return $this->keyboard;
     }
