@@ -27,8 +27,6 @@ class ChatGptApi extends BaseApi
 
     public function completion(ChatGptApiCompletionsRequest $request): Completion
     {
-        $this->token = $request->getToken();
-
         $messages = $request->getMessages();
         array_unshift($messages, $this->getSystemMessage());
 
