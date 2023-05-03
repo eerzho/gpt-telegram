@@ -9,7 +9,6 @@ use App\Entity\MessageT;
 use App\Interface\CommandPostProcessInterface;
 use App\Interface\CommandProcessInterface;
 use App\Message\SendRequestToGpt;
-use App\Model\TelegramApi\ReplyKeyboardMarkup;
 use App\Service\ApiService\TelegramApi;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedLocator;
@@ -18,6 +17,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use TelegramBot\Api\Types\ArrayOfBotCommand;
 use TelegramBot\Api\Types\BotCommand;
 use TelegramBot\Api\Types\Message;
+use TelegramBot\Api\Types\ReplyKeyboardMarkup;
 use TelegramBot\Api\Types\Update;
 
 readonly class TelegramApiService
@@ -270,7 +270,8 @@ readonly class TelegramApiService
             $keyboardArray,
             oneTimeKeyboard: false,
             resizeKeyboard: true,
-            isPersistent: true
+            isPersistent: true,
+            inputFieldPlaceholder: "I'm waiting :)"
         );
 
         return $this->keyboard;

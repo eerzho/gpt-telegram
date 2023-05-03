@@ -28,7 +28,7 @@ readonly class BugTrack implements CommandProcessInterface, CommandPostProcessIn
 
     public function getTextValue(): ?string
     {
-        return "📨";
+        return "📨 Bug track";
     }
 
     public function getDescription(): string

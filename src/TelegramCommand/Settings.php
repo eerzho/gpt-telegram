@@ -20,7 +20,7 @@ readonly class Settings implements CommandProcessInterface
 
     public function getTextValue(): ?string
     {
-        return "🛠️";
+        return "🛠️ Settings";
     }
 
     public function getDescription(): string

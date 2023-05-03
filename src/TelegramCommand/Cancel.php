@@ -25,7 +25,7 @@ readonly class Cancel implements CommandProcessInterface
 
     public function getTextValue(): ?string
     {
-        return "🗑️";
+        return "🗑️ Clear";
     }
 
     public function getDescription(): string
