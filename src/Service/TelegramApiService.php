@@ -130,10 +130,9 @@ readonly class TelegramApiService
         if ($this->messageTService->save($userMessage) &&
             $this->messageTService->save($botMessage) &&
             $this->chatTService->save($chatT->setIsGptProcess(false))) {
-            $this->telegramApi->getBotApi()->deleteMessage(
-                $waitMessage->getChat()->getId(),
-                $waitMessage->getMessageId()
-            );
+
+            $this->deleteMessage($chatT, $waitMessage->getMessageId());
+
             $this->telegramApi->getBotApi()->sendMessage(
                 $message->getChat()->getId(),
                 $gptMessage->getContent(),
@@ -141,6 +140,7 @@ readonly class TelegramApiService
                 replyToMessageId: $message->getMessageId(),
                 replyMarkup: $this->getKeyboard()
             );
+
             $this->manager->flush();
         }
     }
@@ -153,6 +153,20 @@ readonly class TelegramApiService
     public function setWebhook(string $url): string
     {
         return $this->telegramApi->getBotApi()->setWebhook($url);
+    }
+
+    public function sendMessage(ChatT $chatT, string $text): Message
+    {
+        return $this->telegramApi->getBotApi()->sendMessage($chatT->getTelegramId(), $text);
+    }
+
+    public function deleteMessage(ChatT $chatT, int $messageId): bool
+    {
+        try {
+            return $this->telegramApi->getBotApi()->deleteMessage($chatT->getTelegramId(), $messageId);
+        } catch (\Exception $exception) {
+            return true;
+        }
     }
 
     public function setCommands(): mixed

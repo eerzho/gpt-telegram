@@ -5135,12 +5135,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/TelegramBot/Api.git",
-                "reference": "be22ff66fce99c4cd2fceb8afff03da9b92cd5fb"
+                "reference": "78ca7ba77ae6fb699bdd655ffdfaf07cc762d5d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/be22ff66fce99c4cd2fceb8afff03da9b92cd5fb",
-                "reference": "be22ff66fce99c4cd2fceb8afff03da9b92cd5fb",
+                "url": "https://api.github.com/repos/TelegramBot/Api/zipball/78ca7ba77ae6fb699bdd655ffdfaf07cc762d5d6",
+                "reference": "78ca7ba77ae6fb699bdd655ffdfaf07cc762d5d6",
                 "shasum": ""
             },
             "require": {
@@ -5189,7 +5189,7 @@
                 "issues": "https://github.com/TelegramBot/Api/issues",
                 "source": "https://github.com/TelegramBot/Api/tree/master"
             },
-            "time": "2023-04-28T14:31:10+00:00"
+            "time": "2023-05-02T16:01:20+00:00"
         }
     ],
     "packages-dev": [

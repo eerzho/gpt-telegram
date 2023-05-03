@@ -6,13 +6,14 @@ framework:
 
     transports:
       failed: '%env(MESSENGER_TRANSPORT_DSN)%?queue_name=failed'
-      async:
+      delayed:
         dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
         retry_strategy:
           max_retries: 2
-          delay: 20000
+          delay: 5000
           multiplier: 1
         options:
+#          delay: 5000
           use_notify: true
           check_delayed_interval: 60000
           get_notify_timeout: 0
@@ -22,7 +23,7 @@ framework:
       # sync: 'sync://'
 
     routing:
-      'App\Message\SendRequestToGpt': async
+      'App\Message\SendRequestToGpt': delayed
     # Route your messages to the transports
     # 'App\Message\YourMessage': async
 
