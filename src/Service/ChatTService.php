@@ -38,4 +38,12 @@ readonly class ChatTService
             $chatT->getTelegramId(),
         );
     }
+
+    /**
+     * @return ChatT[]
+     */
+    public function getAll(): array
+    {
+        return $this->chatTRepository->getAll();
+    }
 }

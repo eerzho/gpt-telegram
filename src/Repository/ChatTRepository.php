@@ -47,4 +47,12 @@ class ChatTRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['telegram_id' => $id]);
     }
+
+    /**
+     * @return ChatT[]
+     */
+    public function getAll(): array
+    {
+        return $this->findAll();
+    }
 }
